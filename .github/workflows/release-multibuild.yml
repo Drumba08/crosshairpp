@@ -1,0 +1,67 @@
+
+name: release multibuild
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        run: sudo apt update && sudo apt install -y qt6-base-dev qt6-tools-dev pax-utils
+
+      - name: CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Generate artifact
+        run: |
+          mkdir deploy/
+          lddtree -l --copy-to-tree deploy --bindir /bin --libdir /lib --generate-wrappers build/crosshair++
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: deploy/
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: 'windows'
+          arch: 'win64_msvc2022_64'
+          target: 'desktop'
+          
+      - name: CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}"
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Generate artifact
+        run: |
+          mkdir deploy
+          copy build\Release\crosshair++.exe deploy\
+          ${{ env.QT_ROOT_DIR }}\bin\windeployqt.exe deploy/crosshair++.exe --no-compiler-runtime
+
+      - name: Save Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: deploy/

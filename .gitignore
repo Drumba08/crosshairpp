@@ -1,0 +1,5 @@
+build/
+temp/
+.clangd
+.clang-format
+compile_flags.txt
