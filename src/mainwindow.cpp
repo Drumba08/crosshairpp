@@ -12,6 +12,7 @@
 #include "qcolordialog.h"
 #include "qsettings.h"
 #include "qsystemtrayicon.h"
+#include "render.h"
 #include <QCloseEvent>
 #include <QMenu>
 #include <QStyle>
@@ -26,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     loadConfig();
 
     setupConnections();
+    render();
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
@@ -57,6 +59,7 @@ void MainWindow::loadConfig()
 
     int alpha = settings.value("crosshair/shadowAlpha", 255).toInt();
 
+    m_opt.enabled = settings.value("crosshair/enabled", true).toBool();
     m_opt.color = settings.value("crosshair/color", QColor(255, 255, 255)).value<QColor>();
     m_opt.length = settings.value("crosshair/length", 16).toInt();
     m_opt.thickness = settings.value("crosshair/thickness", 2).toInt();
@@ -67,7 +70,7 @@ void MainWindow::loadConfig()
     m_opt.shadowBlurRadius = settings.value("crosshair/shadowRadius", 4).toInt();
     m_opt.shadowColor = QColor(0, 0, 0, alpha);
 
-    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+    ui.i_enableCrosshair->setChecked(m_opt.enabled);
 
     ui.i_length->setValue(m_opt.length);
     ui.i_thickness->setValue(m_opt.thickness);
@@ -86,12 +89,20 @@ void MainWindow::loadConfig()
     ui.i_shadow->setChecked(m_opt.shadow);
     ui.i_shadowradius_2->setValue(m_opt.shadowBlurRadius);
     ui.i_shadowalpha_2->setValue(alpha);
+
+    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+
+    if (m_opt.enabled)
+    {
+        cr.show();
+    }
 }
 
 void MainWindow::saveConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
 
+    settings.setValue("crosshair/enabled", m_opt.enabled);
     settings.setValue("crosshair/color", m_opt.color);
     settings.setValue("crosshair/length", m_opt.length);
     settings.setValue("crosshair/thickness", m_opt.thickness);
@@ -118,12 +129,38 @@ void MainWindow::setupTrayConnections()
     });
 }
 
+void MainWindow::render()
+{
+    // render the preview and main element
+    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+    cr.label->setPixmap(Crosshair::render(m_opt));
+}
+
 void MainWindow::setupConnections()
 {
+    // screen cycle button
+    connect(ui.i_cycleScreen, &QPushButton::clicked, &cr, &CrosshairRenderer::cycleScreen);
+
     // color button
     connect(ui.i_changeColor, &QPushButton::clicked, this, [this]() {
         m_opt.color = QColorDialog::getColor(m_opt.color, this, "Select Color");
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
+        saveConfig();
+    });
+
+    // enable checkmark
+    connect(ui.i_enableCrosshair, &QCheckBox::toggled, this, [this](bool value) {
+        m_opt.enabled = value;
+
+        if (value)
+        {
+            cr.show();
+        }
+        else
+        {
+            cr.hide();
+        }
+
         saveConfig();
     });
 
@@ -131,7 +168,7 @@ void MainWindow::setupConnections()
     connect(ui.i_length, &QSlider::valueChanged, this, [this](int value) {
         m_opt.length = value;
         ui.i_length_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -139,7 +176,7 @@ void MainWindow::setupConnections()
     connect(ui.i_thickness, &QSlider::valueChanged, this, [this](int value) {
         m_opt.thickness = value;
         ui.i_thickness_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -147,14 +184,14 @@ void MainWindow::setupConnections()
     connect(ui.i_gap, &QSlider::valueChanged, this, [this](int value) {
         m_opt.gap = value;
         ui.i_gap_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
     // crosshair dot enabled
     connect(ui.i_dotEnabled, &QCheckBox::toggled, this, [this](bool value) {
         m_opt.dot = value;
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -162,14 +199,14 @@ void MainWindow::setupConnections()
     connect(ui.i_dotSize, &QSlider::valueChanged, this, [this](int value) {
         m_opt.dotSize = value;
         ui.i_dotSize_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
     // crosshair shadow enabled
     connect(ui.i_shadow, &QCheckBox::toggled, this, [this](bool value) {
         m_opt.shadow = value;
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -177,7 +214,7 @@ void MainWindow::setupConnections()
     connect(ui.i_shadowradius, &QSlider::valueChanged, this, [this](int value) {
         m_opt.shadowBlurRadius = value;
         ui.i_shadowradius_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -186,7 +223,7 @@ void MainWindow::setupConnections()
         m_opt.shadowColor = QColor(0, 0, 0, value);
         ;
         ui.i_shadowalpha_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 

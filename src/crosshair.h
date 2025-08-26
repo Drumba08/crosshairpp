@@ -19,6 +19,8 @@ namespace Crosshair
 
 struct Options
 {
+
+    bool enabled = true;
     // Crosshair lines
     int length = 16;
     int gap = 8;

@@ -115,4 +115,4 @@ QPixmap render(const Options &opt)
     return QPixmap::fromImage(out);
 }
 
-}
+} // namespace Crosshair

@@ -159,7 +159,7 @@
      </property>
      <property name="styleSheet">
       <string notr="true">QScrollArea QScrollBar:vertical {
-    background: none;
+    background: transparent;
     width: 10px;
     margin: 0px;
     padding-bottom: 10px;
@@ -174,6 +174,12 @@ QScrollArea QScrollBar::sub-line:vertical {
     background: none;
     height: 0px;
 }</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Plain</enum>
      </property>
      <property name="verticalScrollBarPolicy">
       <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
@@ -193,10 +199,17 @@ QScrollArea QScrollBar::sub-line:vertical {
         <x>0</x>
         <y>0</y>
         <width>375</width>
-        <height>452</height>
+        <height>492</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="i_cycleScreen">
+         <property name="text">
+          <string>Change crosshair screen</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QWidget" name="horizontalWidget" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_16">
