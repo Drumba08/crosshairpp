@@ -23,7 +23,17 @@ QPainterPath buildPath(const Options &opt, const QSize &canvas)
 {
     QPainterPath path;
 
-    const QPointF c(canvas.width() / 2.0, canvas.height() / 2.0);
+    // Center point of screen
+    qreal cx = canvas.width() / 2.0;
+    qreal cy = canvas.height() / 2.0;
+
+    // If thickness is odd, shift by 0.5 to align with pixels
+    // that prevents weird anti aliasing or uneven lengths
+    qreal shift = (opt.thickness % 2) ? 0.5 : 0.0;
+    cx += shift;
+    cy += shift;
+
+    const QPointF c(cx, cy);
     const qreal g = opt.gap;
     const qreal L = opt.length;
 
@@ -32,10 +42,10 @@ QPainterPath buildPath(const Options &opt, const QSize &canvas)
         path.lineTo(b);
     };
 
-    addSegment(QPointF(c.x(), c.y() - g - L), QPointF(c.x(), c.y() - g)); // Up
-    addSegment(QPointF(c.x(), c.y() + g), QPointF(c.x(), c.y() + g + L)); // Down
-    addSegment(QPointF(c.x() - g - L, c.y()), QPointF(c.x() - g, c.y())); // Left
-    addSegment(QPointF(c.x() + g, c.y()), QPointF(c.x() + g + L, c.y())); // Right
+    addSegment(QPointF(c.x(), c.y() - g - L), QPointF(c.x(), c.y() - g));
+    addSegment(QPointF(c.x(), c.y() + g), QPointF(c.x(), c.y() + g + L));
+    addSegment(QPointF(c.x() - g - L, c.y()), QPointF(c.x() - g, c.y()));
+    addSegment(QPointF(c.x() + g, c.y()), QPointF(c.x() + g + L, c.y()));
 
     return path;
 }

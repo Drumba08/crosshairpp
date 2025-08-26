@@ -7,9 +7,11 @@
  */
 
 #include "mainwindow.h"
+#include "crosshair.h"
 #include "qaction.h"
 #include "qcheckbox.h"
 #include "qcolordialog.h"
+#include "qmessagebox.h"
 #include "qsettings.h"
 #include "qsystemtrayicon.h"
 #include "render.h"
@@ -25,6 +27,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setupTrayConnections();
 
     loadConfig();
+
+    if (m_opt.firstTime)
+    {
+        QMessageBox::information(nullptr, "Welcome", "hi");
+
+        m_opt.firstTime = false;
+        saveConfig();
+    }
+
+    this->show();
 
     setupConnections();
     render();
@@ -53,21 +65,43 @@ void MainWindow::setupTray()
     trayIcon->show();
 }
 
+void MainWindow::resetConfig()
+{
+    QSettings settings("Crosshair++", "crosshair");
+
+    Crosshair::Options defaultOptions;
+
+    m_opt.enabled = defaultOptions.enabled;
+    m_opt.color = defaultOptions.color;
+    m_opt.length = defaultOptions.length;
+    m_opt.thickness = defaultOptions.thickness;
+    m_opt.gap = defaultOptions.gap;
+    m_opt.dot = defaultOptions.dot;
+    m_opt.dotSize = defaultOptions.dotSize;
+    m_opt.shadow = defaultOptions.shadow;
+    m_opt.shadowBlurRadius = defaultOptions.shadowBlurRadius;
+    m_opt.shadowColor = defaultOptions.shadowColor;
+}
+
 void MainWindow::loadConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
 
-    int alpha = settings.value("crosshair/shadowAlpha", 255).toInt();
+    Crosshair::Options defaultOptions;
 
-    m_opt.enabled = settings.value("crosshair/enabled", true).toBool();
-    m_opt.color = settings.value("crosshair/color", QColor(255, 255, 255)).value<QColor>();
-    m_opt.length = settings.value("crosshair/length", 16).toInt();
-    m_opt.thickness = settings.value("crosshair/thickness", 2).toInt();
-    m_opt.gap = settings.value("crosshair/gap", 8).toInt();
-    m_opt.dot = settings.value("crosshair/dotEnabled", true).toBool();
-    m_opt.dotSize = settings.value("crosshair/dotSize", 4).toInt();
-    m_opt.shadow = settings.value("crosshair/shadowEnabled", true).toBool();
-    m_opt.shadowBlurRadius = settings.value("crosshair/shadowRadius", 4).toInt();
+    int alpha = settings.value("crosshair/shadowAlpha", defaultOptions.shadowColor.alpha()).toInt();
+
+    m_opt.firstTime = settings.value("crosshair/firstTime", defaultOptions.firstTime).toBool();
+
+    m_opt.enabled = settings.value("crosshair/enabled", defaultOptions.enabled).toBool();
+    m_opt.color = settings.value("crosshair/color", defaultOptions.color).value<QColor>();
+    m_opt.length = settings.value("crosshair/length", defaultOptions.length).toInt();
+    m_opt.thickness = settings.value("crosshair/thickness", defaultOptions.thickness).toInt();
+    m_opt.gap = settings.value("crosshair/gap", defaultOptions.gap).toInt();
+    m_opt.dot = settings.value("crosshair/dotEnabled", defaultOptions.dot).toBool();
+    m_opt.dotSize = settings.value("crosshair/dotSize", defaultOptions.dotSize).toInt();
+    m_opt.shadow = settings.value("crosshair/shadowEnabled", defaultOptions.shadow).toBool();
+    m_opt.shadowBlurRadius = settings.value("crosshair/shadowRadius", defaultOptions.shadowBlurRadius).toInt();
     m_opt.shadowColor = QColor(0, 0, 0, alpha);
 
     ui.i_enableCrosshair->setChecked(m_opt.enabled);
@@ -90,8 +124,6 @@ void MainWindow::loadConfig()
     ui.i_shadowradius_2->setValue(m_opt.shadowBlurRadius);
     ui.i_shadowalpha_2->setValue(alpha);
 
-    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
-
     if (m_opt.enabled)
     {
         cr.show();
@@ -101,6 +133,8 @@ void MainWindow::loadConfig()
 void MainWindow::saveConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
+
+    settings.setValue("crosshair/firstTime", m_opt.firstTime);
 
     settings.setValue("crosshair/enabled", m_opt.enabled);
     settings.setValue("crosshair/color", m_opt.color);
@@ -140,6 +174,13 @@ void MainWindow::setupConnections()
 {
     // screen cycle button
     connect(ui.i_cycleScreen, &QPushButton::clicked, &cr, &CrosshairRenderer::cycleScreen);
+
+    // reset config button
+    connect(ui.i_resetConf, &QPushButton::clicked, this, [this]() {
+        resetConfig();
+        render();
+        saveConfig();
+    });
 
     // color button
     connect(ui.i_changeColor, &QPushButton::clicked, this, [this]() {

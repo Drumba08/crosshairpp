@@ -21,11 +21,15 @@ struct Options
 {
 
     bool enabled = true;
-    // Crosshair lines
-    int length = 16;
-    int gap = 8;
-    int thickness = 2;
+
+    bool firstTime = true;
+    
     QColor color = QColor(255, 255, 255);
+
+    // Crosshair lines
+    int length = 8;
+    int gap = 32;
+    int thickness = 2;
 
     // Center dot
     bool dot = true;
@@ -41,6 +45,7 @@ struct Options
     int padding = 12;
     qreal devicePixelRatio = 1.0;
     qreal supersample = 1.0;
+
 };
 
 QPainterPath buildPath(const Options &opt, const QSize &canvas);
