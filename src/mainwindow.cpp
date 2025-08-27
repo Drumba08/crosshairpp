@@ -6,17 +6,23 @@
  * See the LICENSE file for full license text.
  */
 
-#include "mainwindow.h"
-#include "qaction.h"
-#include "qcheckbox.h"
-#include "qcolordialog.h"
-#include "qsettings.h"
-#include "qsystemtrayicon.h"
+#include <QAction>
+#include <QCheckBox>
 #include <QCloseEvent>
+#include <QColorDialog>
 #include <QMenu>
+#include <QMessageBox>
+#include <QSettings>
 #include <QStyle>
+#include <QSystemTrayIcon>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+#include "crosshair.h"
+#include "mainwindow.h"
+#include "render.h"
+
+// main window constructor. important here is to init QMainWindow and the
+// CrosshairRenderer cr
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
 {
     ui.setupUi(this);
 
@@ -25,9 +31,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
     loadConfig();
 
+    if (m_opt.firstTime)
+    {
+        QMessageBox::information(nullptr, "Welcome", "hi");
+
+        m_opt.firstTime = false;
+        saveConfig();
+    }
+
+    this->show();
+
     setupConnections();
+    render();
 }
 
+// hooks main window closeEvent to prevent the app
+// from shutting down and hides the window instead
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     hide();
@@ -51,23 +70,55 @@ void MainWindow::setupTray()
     trayIcon->show();
 }
 
+// restores the default config in memory.
+// DOES NOT write the changes to disk on its own
+void MainWindow::resetConfig()
+{
+    QSettings settings("Crosshair++", "crosshair");
+
+    Crosshair::Options defaultOptions;
+
+    m_opt.enabled = defaultOptions.enabled;
+    m_opt.color = defaultOptions.color;
+    m_opt.length = defaultOptions.length;
+    m_opt.thickness = defaultOptions.thickness;
+    m_opt.gap = defaultOptions.gap;
+    m_opt.dot = defaultOptions.dot;
+    m_opt.dotSize = defaultOptions.dotSize;
+    m_opt.shadow = defaultOptions.shadow;
+    m_opt.shadowBlurRadius = defaultOptions.shadowBlurRadius;
+    m_opt.shadowColor = defaultOptions.shadowColor;
+
+    m_opt.currentScreenIndex = defaultOptions.currentScreenIndex;
+}
+
+// reads the saved config on program startup
+// from config file / Win Registry
 void MainWindow::loadConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
 
-    int alpha = settings.value("crosshair/shadowAlpha", 255).toInt();
+    Crosshair::Options defaultOptions;
 
-    m_opt.color = settings.value("crosshair/color", QColor(255, 255, 255)).value<QColor>();
-    m_opt.length = settings.value("crosshair/length", 16).toInt();
-    m_opt.thickness = settings.value("crosshair/thickness", 2).toInt();
-    m_opt.gap = settings.value("crosshair/gap", 8).toInt();
-    m_opt.dot = settings.value("crosshair/dotEnabled", true).toBool();
-    m_opt.dotSize = settings.value("crosshair/dotSize", 4).toInt();
-    m_opt.shadow = settings.value("crosshair/shadowEnabled", true).toBool();
-    m_opt.shadowBlurRadius = settings.value("crosshair/shadowRadius", 4).toInt();
+    int alpha = settings.value("crosshair/shadowAlpha", defaultOptions.shadowColor.alpha()).toInt();
+
+    m_opt.firstTime = settings.value("crosshair/firstTime", defaultOptions.firstTime).toBool();
+
+    m_opt.enabled = settings.value("crosshair/enabled", defaultOptions.enabled).toBool();
+    m_opt.color = settings.value("crosshair/color", defaultOptions.color).value<QColor>();
+    m_opt.length = settings.value("crosshair/length", defaultOptions.length).toInt();
+    m_opt.thickness = settings.value("crosshair/thickness", defaultOptions.thickness).toInt();
+    m_opt.gap = settings.value("crosshair/gap", defaultOptions.gap).toInt();
+    m_opt.dot = settings.value("crosshair/dotEnabled", defaultOptions.dot).toBool();
+    m_opt.dotSize = settings.value("crosshair/dotSize", defaultOptions.dotSize).toInt();
+    m_opt.shadow = settings.value("crosshair/shadowEnabled", defaultOptions.shadow).toBool();
+    m_opt.shadowBlurRadius = settings.value("crosshair/shadowRadius", defaultOptions.shadowBlurRadius).toInt();
     m_opt.shadowColor = QColor(0, 0, 0, alpha);
 
-    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+    m_opt.currentScreenIndex =
+        settings.value("crosshair/currentScreenIndex", defaultOptions.currentScreenIndex).toBool();
+
+    ui.i_enableCrosshair->setChecked(m_opt.enabled);
 
     ui.i_length->setValue(m_opt.length);
     ui.i_thickness->setValue(m_opt.thickness);
@@ -86,12 +137,22 @@ void MainWindow::loadConfig()
     ui.i_shadow->setChecked(m_opt.shadow);
     ui.i_shadowradius_2->setValue(m_opt.shadowBlurRadius);
     ui.i_shadowalpha_2->setValue(alpha);
+
+    if (m_opt.enabled)
+    {
+        cr.show();
+    }
 }
 
+// save current config to disk / Win Registry
+// should be called on every settings change
 void MainWindow::saveConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
 
+    settings.setValue("crosshair/firstTime", m_opt.firstTime);
+
+    settings.setValue("crosshair/enabled", m_opt.enabled);
     settings.setValue("crosshair/color", m_opt.color);
     settings.setValue("crosshair/length", m_opt.length);
     settings.setValue("crosshair/thickness", m_opt.thickness);
@@ -101,8 +162,11 @@ void MainWindow::saveConfig()
     settings.setValue("crosshair/shadowEnabled", m_opt.shadow);
     settings.setValue("crosshair/shadowRadius", m_opt.shadowBlurRadius);
     settings.setValue("crosshair/shadowAlpha", m_opt.shadowColor.alpha());
+
+    settings.setValue("crosshair/currentScreenIndex", m_opt.currentScreenIndex);
 }
 
+// connect the tray actions to program logic
 void MainWindow::setupTrayConnections()
 {
     connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
@@ -118,12 +182,49 @@ void MainWindow::setupTrayConnections()
     });
 }
 
+// helper that renders and displays
+// the crosshair in preview and on screen
+void MainWindow::render()
+{
+    // render the preview and main element
+    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+    cr.label->setPixmap(Crosshair::render(m_opt));
+}
+
+// logic for all the buttons. the changes on the crosshair options get written to settings,
+// and a save is triggered. also links sliders to their matching QSpinBox to ensure sync.
 void MainWindow::setupConnections()
 {
+    // screen cycle button
+    connect(ui.i_cycleScreen, &QPushButton::clicked, &cr, &CrosshairRenderer::cycleScreen);
+
+    // reset config button
+    connect(ui.i_resetConf, &QPushButton::clicked, this, [this]() {
+        resetConfig();
+        render();
+        saveConfig();
+    });
+
     // color button
     connect(ui.i_changeColor, &QPushButton::clicked, this, [this]() {
         m_opt.color = QColorDialog::getColor(m_opt.color, this, "Select Color");
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
+        saveConfig();
+    });
+
+    // enable checkmark
+    connect(ui.i_enableCrosshair, &QCheckBox::toggled, this, [this](bool value) {
+        m_opt.enabled = value;
+
+        if (value)
+        {
+            cr.show();
+        }
+        else
+        {
+            cr.hide();
+        }
+
         saveConfig();
     });
 
@@ -131,7 +232,7 @@ void MainWindow::setupConnections()
     connect(ui.i_length, &QSlider::valueChanged, this, [this](int value) {
         m_opt.length = value;
         ui.i_length_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -139,7 +240,7 @@ void MainWindow::setupConnections()
     connect(ui.i_thickness, &QSlider::valueChanged, this, [this](int value) {
         m_opt.thickness = value;
         ui.i_thickness_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -147,14 +248,14 @@ void MainWindow::setupConnections()
     connect(ui.i_gap, &QSlider::valueChanged, this, [this](int value) {
         m_opt.gap = value;
         ui.i_gap_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
     // crosshair dot enabled
     connect(ui.i_dotEnabled, &QCheckBox::toggled, this, [this](bool value) {
         m_opt.dot = value;
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -162,14 +263,14 @@ void MainWindow::setupConnections()
     connect(ui.i_dotSize, &QSlider::valueChanged, this, [this](int value) {
         m_opt.dotSize = value;
         ui.i_dotSize_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
     // crosshair shadow enabled
     connect(ui.i_shadow, &QCheckBox::toggled, this, [this](bool value) {
         m_opt.shadow = value;
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -177,7 +278,7 @@ void MainWindow::setupConnections()
     connect(ui.i_shadowradius, &QSlider::valueChanged, this, [this](int value) {
         m_opt.shadowBlurRadius = value;
         ui.i_shadowradius_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 
@@ -186,7 +287,7 @@ void MainWindow::setupConnections()
         m_opt.shadowColor = QColor(0, 0, 0, value);
         ;
         ui.i_shadowalpha_2->setValue(value);
-        ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+        render();
         saveConfig();
     });
 

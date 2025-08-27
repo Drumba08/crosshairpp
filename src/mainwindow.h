@@ -12,6 +12,7 @@
 #include <QSystemTrayIcon>
 
 #include "crosshair.h"
+#include "render.h"
 #include "ui_preset.h"
 
 class MainWindow : public QMainWindow
@@ -22,6 +23,10 @@ class MainWindow : public QMainWindow
     MainWindow(QWidget *parent = nullptr);
 
     void setupTray();
+
+    void render();
+
+    void resetConfig();
 
     void loadConfig();
 
@@ -34,6 +39,8 @@ class MainWindow : public QMainWindow
   private:
     Ui::MainWindow ui;
     Crosshair::Options m_opt;
+
+    CrosshairRenderer cr;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;

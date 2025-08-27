@@ -8,41 +8,49 @@
 
 #pragma once
 
-#include <QtCore/QPoint>
-#include <QtCore/QSize>
-#include <QtGui/QColor>
-#include <QtGui/QPainterPath>
-#include <QtGui/QPixmap>
+#include <QPoint>
+#include <QSize>
+#include <QColor>
+#include <QPixmap>
+#include <QPainterPath>
 
 namespace Crosshair
 {
 
 struct Options
 {
-    // Crosshair lines
-    int length = 16;
-    int gap = 8;
-    int thickness = 2;
+    bool enabled = true;
+
+    bool firstTime = true;
+    
     QColor color = QColor(255, 255, 255);
 
-    // Center dot
+    int length = 8;
+    int gap = 32;
+    int thickness = 2;
+
     bool dot = true;
     int dotSize = 4;
 
-    // Shadow
     bool shadow = true;
-    QColor shadowColor = QColor(0, 0, 0, 255);
     int shadowBlurRadius = 6;
+    QColor shadowColor = QColor(0, 0, 0, 255);
     QPoint shadowOffset = QPoint(0, 0);
 
-    // Padding / DPI
     int padding = 12;
+
+    int currentScreenIndex = 0;
+
     qreal devicePixelRatio = 1.0;
     qreal supersample = 1.0;
 };
 
+// creates the QPainterPath for the main crosshair lines, so
+// they can be used in the render function
 QPainterPath buildPath(const Options &opt, const QSize &canvas);
 
+// renders the crosshair lines with thicknes color
+// shadow and the centerdot to a QPixmap
 QPixmap render(const Options &opt);
 
 }

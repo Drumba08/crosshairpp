@@ -6,12 +6,41 @@
  * See the LICENSE file for full license text.
  */
 
+#include <QMessageBox>
+#include <QSharedMemory>
+#include <QApplication>
+
+#include <signal.h>
+
 #include "mainwindow.h"
-#include "qapplication.h"
+
+QSharedMemory *gShared = nullptr;
+
+// SIGINT/SIGTERM handler
+void handleSignal(int)
+{
+    if (gShared)
+        gShared->detach();
+    exit(0);
+}
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    // shared memory to check for other running process
+    QSharedMemory shared("crosshairpp.sharedmem");
+    gShared = &shared;
+    if (!shared.create(1))
+    {
+        QMessageBox::warning(nullptr, "Already running", "Crosshair++ is already running. Check your system tray to open the settings.");
+        return 1;
+    }
+
+    // Register signal handlers
+    signal(SIGINT, handleSignal);
+    signal(SIGTERM, handleSignal);
+
     MainWindow window;
 
     app.exec();

@@ -31,6 +31,7 @@ add_executable(crosshair++
     src/main.cpp
     src/mainwindow.cpp
     src/crosshair.cpp
+    src/render.cpp
 
     resources/preset.ui
 )

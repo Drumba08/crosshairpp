@@ -1,5 +1,5 @@
-<h1 style="text-align: center;">Crosshair++</h1>
-<h4 style="text-align: center;">Cross-platform customizable crosshair written in C++</h4>
+<h1 align="center">Crosshair++</h1>
+<h4 align="center">Cross-platform customizable crosshair written in C++</h4>
 
 > [!WARNING]
 > Windows Binaries are not signed and will likely cause *Windows protected your PC* warnings.
@@ -13,21 +13,4 @@ Then you can unpack it somewhere (like on your desktop), and run the executable 
 
 Starting the program will display the crosshair on screen, and add a tray icon, which can be clicked to access the settings.
 
-## Building
-
-Simple guide that explains how to build the project yourself.
-
-#### Windows
-
-1. Install dependencies
-
-    Download and install Visual Studio 2022 Community. In the installation process select **C++ Desktop Developement**
-    and make sure MSVC and the Win11 ...
-
-1. Clone the repository
-    ```
-    git clone https://github.com/username/project.git
-    cd project
-    ```
-
-## Contributing
+still working on this here ...
