@@ -17,8 +17,9 @@
 
 CrosshairRenderer::CrosshairRenderer()
 {
-    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool | Qt::WindowTransparentForInput);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool | Qt::WindowTransparentForInput | Qt::BypassWindowManagerHint);
     setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_TransparentForMouseEvents);
     setFixedSize(100, 100);
 
     label = new QLabel(this);
