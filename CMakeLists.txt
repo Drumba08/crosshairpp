@@ -36,4 +36,11 @@ add_executable(crosshair++
     resources/preset.ui
 )
 
+if(WIN32)
+    set_target_properties(crosshair++ PROPERTIES
+        OUTPUT_NAME "crosshair++"
+        RESOURCE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/resources/win.rc"
+    )
+endif()
+
 target_link_libraries(crosshair++ PRIVATE Qt6::Widgets)
