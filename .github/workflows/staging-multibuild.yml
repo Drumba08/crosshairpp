@@ -58,11 +58,11 @@ jobs:
 
       - name: Generate artifact
         run: |
-          mkdir deploy
-          mkdir deploy\plugins
-          copy build\Debug\*.pdb deploy\
-          copy build\Debug\crosshair++.exe deploy\
-          ${{ env.QT_ROOT_DIR }}\bin\windeployqt.exe deploy/crosshair++.exe
+          mkdir -p deploy/crosshairpp
+          mkdir deploy/crosshairpp/plugins
+          copy build\Debug\*.pdb deploy\crosshairpp\
+          copy build\Debug\crosshair++.exe deploy\crosshairpp\
+          ${{ env.QT_ROOT_DIR }}\bin\windeployqt.exe deploy/crosshairpp/crosshair++.exe
 
       - name: Save Build
         uses: actions/upload-artifact@v4
