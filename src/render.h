@@ -8,17 +8,17 @@
 
 #pragma once
 
-#include "crosshair.h"
-#include "qlabel.h"
-#include "qtmetamacros.h"
+#include <QLabel>
 #include "qwidget.h"
+
+#include "crosshair.h"
 
 class CrosshairRenderer : public QWidget
 {
     Q_OBJECT
 
   public:
-    CrosshairRenderer();
+    CrosshairRenderer(Crosshair::Options &opt);
 
     void Paint();
 
@@ -27,5 +27,5 @@ class CrosshairRenderer : public QWidget
     void cycleScreen();
 
   private:
-    int currentScreenIndex = 0;
+    Crosshair::Options &m_opt;
 };

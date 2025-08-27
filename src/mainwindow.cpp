@@ -6,20 +6,23 @@
  * See the LICENSE file for full license text.
  */
 
-#include "mainwindow.h"
-#include "crosshair.h"
-#include "qaction.h"
-#include "qcheckbox.h"
-#include "qcolordialog.h"
-#include "qmessagebox.h"
-#include "qsettings.h"
-#include "qsystemtrayicon.h"
-#include "render.h"
+#include <QAction>
+#include <QCheckBox>
 #include <QCloseEvent>
+#include <QColorDialog>
 #include <QMenu>
+#include <QMessageBox>
+#include <QSettings>
 #include <QStyle>
+#include <QSystemTrayIcon>
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
+#include "crosshair.h"
+#include "mainwindow.h"
+#include "render.h"
+
+// main window constructor. important here is to init QMainWindow and the
+// CrosshairRenderer cr
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
 {
     ui.setupUi(this);
 
@@ -42,6 +45,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     render();
 }
 
+// hooks main window closeEvent to prevent the app
+// from shutting down and hides the window instead
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     hide();
@@ -65,6 +70,8 @@ void MainWindow::setupTray()
     trayIcon->show();
 }
 
+// restores the default config in memory.
+// DOES NOT write the changes to disk on its own
 void MainWindow::resetConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
@@ -81,8 +88,12 @@ void MainWindow::resetConfig()
     m_opt.shadow = defaultOptions.shadow;
     m_opt.shadowBlurRadius = defaultOptions.shadowBlurRadius;
     m_opt.shadowColor = defaultOptions.shadowColor;
+
+    m_opt.currentScreenIndex = defaultOptions.currentScreenIndex;
 }
 
+// reads the saved config on program startup
+// from config file / Win Registry
 void MainWindow::loadConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
@@ -103,6 +114,9 @@ void MainWindow::loadConfig()
     m_opt.shadow = settings.value("crosshair/shadowEnabled", defaultOptions.shadow).toBool();
     m_opt.shadowBlurRadius = settings.value("crosshair/shadowRadius", defaultOptions.shadowBlurRadius).toInt();
     m_opt.shadowColor = QColor(0, 0, 0, alpha);
+
+    m_opt.currentScreenIndex =
+        settings.value("crosshair/currentScreenIndex", defaultOptions.currentScreenIndex).toBool();
 
     ui.i_enableCrosshair->setChecked(m_opt.enabled);
 
@@ -130,6 +144,8 @@ void MainWindow::loadConfig()
     }
 }
 
+// save current config to disk / Win Registry
+// should be called on every settings change
 void MainWindow::saveConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
@@ -146,8 +162,11 @@ void MainWindow::saveConfig()
     settings.setValue("crosshair/shadowEnabled", m_opt.shadow);
     settings.setValue("crosshair/shadowRadius", m_opt.shadowBlurRadius);
     settings.setValue("crosshair/shadowAlpha", m_opt.shadowColor.alpha());
+
+    settings.setValue("crosshair/currentScreenIndex", m_opt.currentScreenIndex);
 }
 
+// connect the tray actions to program logic
 void MainWindow::setupTrayConnections()
 {
     connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
@@ -163,6 +182,8 @@ void MainWindow::setupTrayConnections()
     });
 }
 
+// helper that renders and displays
+// the crosshair in preview and on screen
 void MainWindow::render()
 {
     // render the preview and main element
@@ -170,6 +191,8 @@ void MainWindow::render()
     cr.label->setPixmap(Crosshair::render(m_opt));
 }
 
+// logic for all the buttons. the changes on the crosshair options get written to settings,
+// and a save is triggered. also links sliders to their matching QSpinBox to ensure sync.
 void MainWindow::setupConnections()
 {
     // screen cycle button

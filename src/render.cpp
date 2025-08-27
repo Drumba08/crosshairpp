@@ -6,31 +6,48 @@
  * See the LICENSE file for full license text.
  */
 
-#include "render.h"
-#include "QScreen"
-#include "qguiapplication.h"
-#include "qlabel.h"
-#include "qlist.h"
-#include "qnamespace.h"
-#include "qpolygon.h"
-#include "qscreen.h"
+#include <QGuiApplication>
+#include <QLabel>
+#include <QList>
+#include <QPolygon>
+#include <QScreen>
+#include <QWidget>
 
-CrosshairRenderer::CrosshairRenderer()
+#include "render.h"
+
+// this constructor creates the widget where the crosshair is rendered on screen.
+// its initially centered on the first system screen. it pulls the m_opt ref
+// from the MainWindow Constructor to access the settings currentScreenIndex
+CrosshairRenderer::CrosshairRenderer(Crosshair::Options &opt) : QWidget(), m_opt(opt)
 {
-    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool | Qt::WindowTransparentForInput | Qt::BypassWindowManagerHint);
+    // make sure the window is transparent and click thru
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool | Qt::WindowTransparentForInput |
+                   Qt::BypassWindowManagerHint);
+
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_TransparentForMouseEvents);
-    setFixedSize(100, 100);
 
+    setFixedSize(200, 200);
+
+    // the QPixmap is rendered in this QLabel
     label = new QLabel(this);
     label->setGeometry(0, 0, width(), height());
     label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
     QList<QScreen *> screens = QGuiApplication::screens();
 
+    // this part of code gets the prefered screen from settings and centeres
+    // the CrosshairRenderer QWidget on it.
     if (!screens.isEmpty())
     {
-        QRect screenGeometry = screens[currentScreenIndex]->geometry();
+        // make sure currentScreenIndex < screen amount to
+        // prevent runtime errors. also prevent <0 values.
+        if (m_opt.currentScreenIndex >= screens.size())
+            m_opt.currentScreenIndex = screens.size() - 1;
+        else if (m_opt.currentScreenIndex < 0)
+            m_opt.currentScreenIndex = 0;
+
+        QRect screenGeometry = screens[m_opt.currentScreenIndex]->geometry();
         int cx = screenGeometry.x() + (screenGeometry.width() - width()) / 2;
         int cy = screenGeometry.y() + (screenGeometry.height() - height()) / 2;
 
@@ -38,15 +55,17 @@ CrosshairRenderer::CrosshairRenderer()
     }
 }
 
+// this function loops thru the available monitors and centers the
+// crosshair on them until the user found the prefered monitor
 void CrosshairRenderer::cycleScreen()
 {
     QList<QScreen *> screens = QGuiApplication::screens();
     if (screens.isEmpty())
         return;
 
-    currentScreenIndex = (currentScreenIndex + 1) % screens.size();
+    m_opt.currentScreenIndex = (m_opt.currentScreenIndex + 1) % screens.size();
 
-    QRect screenGeometry = screens[currentScreenIndex]->geometry();
+    QRect screenGeometry = screens[m_opt.currentScreenIndex]->geometry();
     int cx = screenGeometry.x() + (screenGeometry.width() - width()) / 2;
     int cy = screenGeometry.y() + (screenGeometry.height() - height()) / 2;
 

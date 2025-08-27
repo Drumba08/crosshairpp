@@ -6,14 +6,17 @@
  * See the LICENSE file for full license text.
  */
 
-#include "QMessageBox"
-#include "QSharedMemory"
+#include <QMessageBox>
+#include <QSharedMemory>
+#include <QApplication>
+
+#include <signal.h>
+
 #include "mainwindow.h"
-#include "qapplication.h"
-#include "signal.h"
 
 QSharedMemory *gShared = nullptr;
 
+// SIGINT/SIGTERM handler
 void handleSignal(int)
 {
     if (gShared)
@@ -34,11 +37,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // close sharedmem on sigint/sigterm to cleanup
+    // Register signal handlers
     signal(SIGINT, handleSignal);
     signal(SIGTERM, handleSignal);
 
-    // create instance of MainWindow (the settings)
     MainWindow window;
 
     app.exec();
