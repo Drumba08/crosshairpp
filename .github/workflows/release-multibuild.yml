@@ -57,7 +57,7 @@ jobs:
       - name: Generate artifact
         run: |
           mkdir -p deploy/crosshairpp
-          copy build\Debug\crosshair++.exe deploy\crosshairpp\
+          copy build\Release\crosshair++.exe deploy\crosshairpp\
           ${{ env.QT_ROOT_DIR }}\bin\windeployqt.exe deploy/crosshairpp/crosshair++.exe --no-compiler-runtime
 
       - name: Save Build
