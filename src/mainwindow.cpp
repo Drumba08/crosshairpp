@@ -224,7 +224,7 @@ QString MainWindow::updateCode()
 }
 
 // takes a crosshair code and applys it to settings
-void applyCode(QString &code)
+void MainWindow::applyCode(QString &code)
 {
 }
 
