@@ -1,9 +1,6 @@
 <h1 align="center">Crosshair++</h1>
 <h4 align="center">Cross-platform customizable crosshair written in C++</h4>
 
-> [!WARNING]
-> Windows Binaries are not signed and will likely cause *Windows protected your PC* warnings.
-
 > [!NOTE]
 > The Crosshair does not work in applications using Exclusive Fullscreen / FSX.
 
