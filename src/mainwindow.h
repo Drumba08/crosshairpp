@@ -26,6 +26,12 @@ class MainWindow : public QMainWindow
 
     void render();
 
+    QString updateCode();
+
+    void applyCode(QString &code);
+
+    void updateUi();
+
     void resetConfig();
 
     void loadConfig();

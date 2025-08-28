@@ -15,6 +15,7 @@
 #include <QSettings>
 #include <QStyle>
 #include <QSystemTrayIcon>
+#include <QLineEdit>
 
 #include "crosshair.h"
 #include "mainwindow.h"
@@ -42,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
     this->show();
 
     setupConnections();
-    render();
+    updateUi();
 }
 
 // hooks main window closeEvent to prevent the app
@@ -191,24 +192,67 @@ void MainWindow::render()
     cr.label->setPixmap(Crosshair::render(m_opt));
 }
 
+// this function updates the ui after an user input
+// that changed any settings / configuration
+void MainWindow::updateUi()
+{
+    QString crosshairCode = updateCode();
+    ui.i_crosshairCode->setText(crosshairCode);
+    render();
+}
+
+// this function generates a crosshair code
+// encoding user changable settings
+QString MainWindow::updateCode()
+{
+    QString code;
+
+    code += QString("%1;").arg(m_opt.enabled ? 1 : 0);
+    code += QString("%1;").arg(m_opt.color.red());
+    code += QString("%1;").arg(m_opt.color.green());
+    code += QString("%1;").arg(m_opt.color.blue());
+    code += QString("%1;").arg(m_opt.length);
+    code += QString("%1;").arg(m_opt.gap);
+    code += QString("%1;").arg(m_opt.thickness);
+    code += QString("%1;").arg(m_opt.dot ? 1 : 0);
+    code += QString("%1;").arg(m_opt.dotSize);
+    code += QString("%1;").arg(m_opt.shadow ? 1 : 0);
+    code += QString("%1;").arg(m_opt.shadowBlurRadius);
+    code += QString("%1").arg(m_opt.shadowColor.alpha());
+
+    return code;
+}
+
+// takes a crosshair code and applys it to settings
+void applyCode(QString &code)
+{
+}
+
 // logic for all the buttons. the changes on the crosshair options get written to settings,
 // and a save is triggered. also links sliders to their matching QSpinBox to ensure sync.
 void MainWindow::setupConnections()
 {
+    // crosshair code LineEdit change handler
+    connect(ui.i_crosshairCode, &QLineEdit::textEdited, this, [this](QString value) {
+        applyCode(value);
+        updateUi();
+        saveConfig();
+    });
+
     // screen cycle button
     connect(ui.i_cycleScreen, &QPushButton::clicked, &cr, &CrosshairRenderer::cycleScreen);
 
     // reset config button
     connect(ui.i_resetConf, &QPushButton::clicked, this, [this]() {
         resetConfig();
-        render();
+        updateUi();
         saveConfig();
     });
 
     // color button
     connect(ui.i_changeColor, &QPushButton::clicked, this, [this]() {
         m_opt.color = QColorDialog::getColor(m_opt.color, this, "Select Color");
-        render();
+        updateUi();
         saveConfig();
     });
 
@@ -232,7 +276,7 @@ void MainWindow::setupConnections()
     connect(ui.i_length, &QSlider::valueChanged, this, [this](int value) {
         m_opt.length = value;
         ui.i_length_2->setValue(value);
-        render();
+        updateUi();
         saveConfig();
     });
 
@@ -240,7 +284,7 @@ void MainWindow::setupConnections()
     connect(ui.i_thickness, &QSlider::valueChanged, this, [this](int value) {
         m_opt.thickness = value;
         ui.i_thickness_2->setValue(value);
-        render();
+        updateUi();
         saveConfig();
     });
 
@@ -248,14 +292,14 @@ void MainWindow::setupConnections()
     connect(ui.i_gap, &QSlider::valueChanged, this, [this](int value) {
         m_opt.gap = value;
         ui.i_gap_2->setValue(value);
-        render();
+        updateUi();
         saveConfig();
     });
 
     // crosshair dot enabled
     connect(ui.i_dotEnabled, &QCheckBox::toggled, this, [this](bool value) {
         m_opt.dot = value;
-        render();
+        updateUi();
         saveConfig();
     });
 
@@ -263,14 +307,14 @@ void MainWindow::setupConnections()
     connect(ui.i_dotSize, &QSlider::valueChanged, this, [this](int value) {
         m_opt.dotSize = value;
         ui.i_dotSize_2->setValue(value);
-        render();
+        updateUi();
         saveConfig();
     });
 
     // crosshair shadow enabled
     connect(ui.i_shadow, &QCheckBox::toggled, this, [this](bool value) {
         m_opt.shadow = value;
-        render();
+        updateUi();
         saveConfig();
     });
 
@@ -278,7 +322,7 @@ void MainWindow::setupConnections()
     connect(ui.i_shadowradius, &QSlider::valueChanged, this, [this](int value) {
         m_opt.shadowBlurRadius = value;
         ui.i_shadowradius_2->setValue(value);
-        render();
+        updateUi();
         saveConfig();
     });
 
@@ -287,7 +331,7 @@ void MainWindow::setupConnections()
         m_opt.shadowColor = QColor(0, 0, 0, value);
         ;
         ui.i_shadowalpha_2->setValue(value);
-        render();
+        updateUi();
         saveConfig();
     });
 
