@@ -3,9 +3,11 @@ name: staging multibuild
 
 on:
   push:
-    branches: [ "staging" ]
+    branches-ignore:
+      - main
   pull_request:
-    branches: [ "staging" ]
+    branches-ignore:
+      - main
 
 jobs:
   build-linux:
