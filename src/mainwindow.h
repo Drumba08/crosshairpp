@@ -27,6 +27,8 @@ class MainWindow : public QMainWindow
     void render();
 
     void resetConfig();
+    
+    void showConfig();
 
     void loadConfig();
 

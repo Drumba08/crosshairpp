@@ -71,3 +71,18 @@ void CrosshairRenderer::cycleScreen()
 
     move(cx, cy);
 }
+
+// updates the position of the crosshair to match the
+// position from the settings
+void CrosshairRenderer::update()
+{
+    QList<QScreen *> screens = QGuiApplication::screens();
+    if (screens.isEmpty())
+        return;
+
+    QRect screenGeometry = screens[m_opt.currentScreenIndex]->geometry();
+    int cx = screenGeometry.x() + (screenGeometry.width() - width()) / 2;
+    int cy = screenGeometry.y() + (screenGeometry.height() - height()) / 2;
+
+    move(cx, cy);
+}
