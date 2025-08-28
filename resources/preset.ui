@@ -199,7 +199,7 @@ QScrollArea QScrollBar::sub-line:vertical {
         <x>0</x>
         <y>0</y>
         <width>375</width>
-        <height>504</height>
+        <height>469</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -515,6 +515,9 @@ QScrollArea QScrollBar::sub-line:vertical {
               <height>16777215</height>
              </size>
             </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>
             </property>
@@ -691,7 +694,7 @@ QScrollArea QScrollBar::sub-line:vertical {
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit">
+           <widget class="QLineEdit" name="i_crosshairCode">
             <property name="maximumSize">
              <size>
               <width>200</width>

@@ -8,11 +8,11 @@
 
 #pragma once
 
+#include <QColor>
+#include <QPainterPath>
+#include <QPixmap>
 #include <QPoint>
 #include <QSize>
-#include <QColor>
-#include <QPixmap>
-#include <QPainterPath>
 
 namespace Crosshair
 {
@@ -22,7 +22,7 @@ struct Options
     bool enabled = true;
 
     bool firstTime = true;
-    
+
     QColor color = QColor(255, 255, 255);
 
     int length = 8;
@@ -43,6 +43,16 @@ struct Options
 
     qreal devicePixelRatio = 1.0;
     qreal supersample = 1.0;
+
+    void clamp()
+    {
+        length = std::clamp(length, 1, 50);
+        gap = std::clamp(gap, 0, 50);
+        thickness = std::clamp(thickness, 1, 50);
+        dotSize = std::clamp(dotSize, 0, 100);
+        shadowBlurRadius = std::clamp(shadowBlurRadius, 0, 24);
+        shadowColor.setAlpha(std::clamp(shadowColor.alpha(), 0, 255));
+    }
 };
 
 // creates the QPainterPath for the main crosshair lines, so
@@ -53,4 +63,4 @@ QPainterPath buildPath(const Options &opt, const QSize &canvas);
 // shadow and the centerdot to a QPixmap
 QPixmap render(const Options &opt);
 
-}
+} // namespace Crosshair
