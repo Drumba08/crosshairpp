@@ -41,6 +41,8 @@ struct Options
 
     int currentScreenIndex = 0;
 
+    bool autoSettings = true;
+
     qreal devicePixelRatio = 1.0;
     qreal supersample = 1.0;
 };

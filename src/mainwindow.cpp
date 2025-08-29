@@ -42,7 +42,8 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
         saveConfig();
     }
 
-    this->show();
+    if (m_opt.autoSettings)
+        this->show();
 
     setupConnections();
     render();
@@ -93,6 +94,7 @@ void MainWindow::resetConfig()
     m_opt.shadowColor = defaultOptions.shadowColor;
 
     m_opt.currentScreenIndex = defaultOptions.currentScreenIndex;
+    m_opt.autoSettings = defaultOptions.autoSettings;
 }
 
 // reads the saved config on program startup
@@ -120,6 +122,8 @@ void MainWindow::loadConfig()
 
     m_opt.currentScreenIndex =
         settings.value("crosshair/currentScreenIndex", defaultOptions.currentScreenIndex).toBool();
+
+    m_opt.autoSettings = settings.value("crosshair/autoSettings", defaultOptions.autoSettings).toBool();
 }
 
 // loads the config from memory into all
@@ -145,6 +149,7 @@ void MainWindow::showConfig()
     ui.i_shadow->setChecked(m_opt.shadow);
     ui.i_shadowradius_2->setValue(m_opt.shadowBlurRadius);
     ui.i_shadowalpha_2->setValue(m_opt.shadowColor.alpha());
+    ui.i_autoSettings->setChecked(m_opt.autoSettings);
 
     if (m_opt.enabled)
     {
@@ -172,6 +177,7 @@ void MainWindow::saveConfig()
     settings.setValue("crosshair/shadowAlpha", m_opt.shadowColor.alpha());
 
     settings.setValue("crosshair/currentScreenIndex", m_opt.currentScreenIndex);
+    settings.setValue("crosshair/autoSettings", m_opt.autoSettings);
 }
 
 // connect the tray actions to program logic
@@ -195,7 +201,6 @@ void MainWindow::setupTrayConnections()
 void MainWindow::render()
 {
     // render the preview and main element
-    //ui.crossPreview->setPixmap(Crosshair::render(m_opt));
     cr.label->setPixmap(Crosshair::render(m_opt));
 }
 
@@ -220,6 +225,11 @@ void MainWindow::setupConnections()
     connect(ui.i_changeColor, &QPushButton::clicked, this, [this]() {
         m_opt.color = QColorDialog::getColor(m_opt.color, this, "Select Color");
         render();
+        saveConfig();
+    });
+
+    connect(ui.i_autoSettings, &QCheckBox::toggled, this, [this](bool value) {
+        m_opt.autoSettings = value;
         saveConfig();
     });
 
