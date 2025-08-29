@@ -10,12 +10,12 @@
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QColorDialog>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMessageBox>
 #include <QSettings>
 #include <QStyle>
 #include <QSystemTrayIcon>
-#include <QLineEdit>
 
 #include "crosshair.h"
 #include "mainwindow.h"
@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
     setupTrayConnections();
 
     loadConfig();
+    m_opt.clamp();
 
     if (m_opt.firstTime)
     {
@@ -151,6 +152,8 @@ void MainWindow::saveConfig()
 {
     QSettings settings("Crosshair++", "crosshair");
 
+    m_opt.clamp();
+
     settings.setValue("crosshair/firstTime", m_opt.firstTime);
 
     settings.setValue("crosshair/enabled", m_opt.enabled);
@@ -190,6 +193,16 @@ void MainWindow::render()
     // render the preview and main element
     ui.crossPreview->setPixmap(Crosshair::render(m_opt));
     cr.label->setPixmap(Crosshair::render(m_opt));
+
+    // show only if enabled
+    if (m_opt.enabled)
+    {
+        cr.show();
+    }
+    else
+    {
+        cr.hide();
+    }
 }
 
 // this function updates the ui after an user input
@@ -223,9 +236,83 @@ QString MainWindow::updateCode()
     return code;
 }
 
-// takes a crosshair code and applys it to settings
+// takes a crosshair code and applys it
+// to settings if its valid
 void MainWindow::applyCode(QString &code)
 {
+    QStringList parts = code.split(';');
+
+    if (parts.size() != 12)
+    {
+        qWarning() << "invalid code: " << code;
+        return;
+    }
+
+    bool ok;
+
+    // enabled
+    int tempInt = parts[0].toInt(&ok);
+    if (ok)
+        m_opt.enabled = (tempInt != 0);
+
+    // color
+    int r = parts[1].toInt(&ok);
+    if (!ok)
+        r = m_opt.color.red();
+
+    int g = parts[2].toInt(&ok);
+    if (!ok)
+        g = m_opt.color.green();
+
+    int b = parts[3].toInt(&ok);
+    if (!ok)
+        b = m_opt.color.blue();
+
+    m_opt.color.setRgb(r, g, b);
+
+    // length
+    tempInt = parts[4].toInt(&ok);
+    if (ok)
+        m_opt.length = tempInt;
+
+    // gap
+    tempInt = parts[5].toInt(&ok);
+    if (ok)
+        m_opt.gap = tempInt;
+
+    // thickness
+    tempInt = parts[6].toInt(&ok);
+    if (ok)
+        m_opt.thickness = tempInt;
+
+    // dot
+    tempInt = parts[7].toInt(&ok);
+    if (ok)
+        m_opt.dot = (tempInt != 0);
+
+    // dotSize
+    tempInt = parts[8].toInt(&ok);
+    if (ok)
+        m_opt.dotSize = tempInt;
+
+    // shadow
+    tempInt = parts[9].toInt(&ok);
+    if (ok)
+        m_opt.shadow = (tempInt != 0);
+
+    // shadowBlurRadius
+    tempInt = parts[10].toInt(&ok);
+    if (ok)
+        m_opt.shadowBlurRadius = tempInt;
+
+    // shadowColor alpha
+    tempInt = parts[11].toInt(&ok);
+    if (ok)
+    {
+        QColor c = m_opt.shadowColor;
+        c.setAlpha(tempInt);
+        m_opt.shadowColor = c;
+    }
 }
 
 // logic for all the buttons. the changes on the crosshair options get written to settings,
@@ -235,8 +322,9 @@ void MainWindow::setupConnections()
     // crosshair code LineEdit change handler
     connect(ui.i_crosshairCode, &QLineEdit::textEdited, this, [this](QString value) {
         applyCode(value);
-        updateUi();
+        m_opt.clamp();
         saveConfig();
+        render();
     });
 
     // screen cycle button
@@ -259,16 +347,7 @@ void MainWindow::setupConnections()
     // enable checkmark
     connect(ui.i_enableCrosshair, &QCheckBox::toggled, this, [this](bool value) {
         m_opt.enabled = value;
-
-        if (value)
-        {
-            cr.show();
-        }
-        else
-        {
-            cr.hide();
-        }
-
+        render();
         saveConfig();
     });
 
