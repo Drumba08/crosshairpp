@@ -15,14 +15,15 @@
 #include <QSettings>
 #include <QStyle>
 #include <QSystemTrayIcon>
+#include <QWidget>
 
 #include "crosshair.h"
 #include "mainwindow.h"
 #include "render.h"
 
-// main window constructor. important here is to init QMainWindow and the
+// main window constructor. important here is to init QWidget and the
 // CrosshairRenderer cr
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
 {
     ui.setupUi(this);
 
@@ -194,7 +195,7 @@ void MainWindow::setupTrayConnections()
 void MainWindow::render()
 {
     // render the preview and main element
-    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+    //ui.crossPreview->setPixmap(Crosshair::render(m_opt));
     cr.label->setPixmap(Crosshair::render(m_opt));
 }
 

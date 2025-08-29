@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include <QMainWindow>
 #include <QSystemTrayIcon>
+#include <QWidget>
 
 #include "crosshair.h"
 #include "render.h"
 #include "ui_preset.h"
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
     Q_OBJECT
 
@@ -27,7 +27,7 @@ class MainWindow : public QMainWindow
     void render();
 
     void resetConfig();
-    
+
     void showConfig();
 
     void loadConfig();
