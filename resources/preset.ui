@@ -47,6 +47,7 @@
 
 #i_exit {
 	background-color: red;
+	border-radius: 9px;
 }
 
 QSlider {
@@ -94,6 +95,7 @@ QSlider::handle:horizontal:pressed {
 
 QPushButton {
 	border: 1px solid rgb(50, 50, 50);
+	border-radius: 4px;
 	background-color: rgb(32, 32, 32);
 	height: 32px;
 }
@@ -111,8 +113,8 @@ QScrollBar:vertical {
     width: 8px;
     margin: 0px;
 
-	padding-top: 10px;
-	padding-bottom: 25px
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
 
 QScrollBar::handle:vertical {
@@ -150,6 +152,32 @@ QLineEdit {
     border: 1px solid rgb(50, 50, 50);
 	height: 22px;
 	padding: 2px;
+}
+
+QCheckBox {
+    spacing: 8px;
+}
+
+QCheckBox::indicator {
+	width: 14px;
+	height: 14px;
+	border: 1px solid rgb(50, 50, 50);
+	background-color: rgb(32, 32, 32);
+	border-radius: 3px
+}
+
+QCheckBox::indicator:checked {
+    background-color: rgb(85, 255, 127);
+	border: 1px solid rgb(50, 50, 50);
+}
+
+QCheckBox::indicator:hover {
+    background-color: rgb(40, 40, 40);
+	border: 1px solid rgb(50, 50, 50);
+}
+
+QCheckBox::indicator:checked:hover {
+    background-color: rgb(135, 255, 163);
 }
 </string>
   </property>
@@ -300,9 +328,9 @@ QLineEdit {
          <property name="geometry">
           <rect>
            <x>0</x>
-           <y>-120</y>
+           <y>0</y>
            <width>490</width>
-           <height>488</height>
+           <height>480</height>
           </rect>
          </property>
          <property name="styleSheet">
