@@ -33,6 +33,8 @@ class MainWindow : public QMainWindow
     void updateUi();
 
     void resetConfig();
+    
+    void showConfig();
 
     void loadConfig();
 

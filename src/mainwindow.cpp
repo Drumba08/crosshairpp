@@ -33,6 +33,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
     loadConfig();
     m_opt.clamp();
 
+    showConfig();
+
     if (m_opt.firstTime)
     {
         QMessageBox::information(nullptr, "Welcome", "hi");
@@ -119,7 +121,12 @@ void MainWindow::loadConfig()
 
     m_opt.currentScreenIndex =
         settings.value("crosshair/currentScreenIndex", defaultOptions.currentScreenIndex).toBool();
+}
 
+// loads the config from memory into all
+// the widgets to display
+void MainWindow::showConfig()
+{
     ui.i_enableCrosshair->setChecked(m_opt.enabled);
 
     ui.i_length->setValue(m_opt.length);
@@ -129,7 +136,7 @@ void MainWindow::loadConfig()
     ui.i_dotSize->setValue(m_opt.dotSize);
     ui.i_shadow->setChecked(m_opt.shadow);
     ui.i_shadowradius->setValue(m_opt.shadowBlurRadius);
-    ui.i_shadowalpha->setValue(alpha);
+    ui.i_shadowalpha->setValue(m_opt.shadowColor.alpha());
 
     ui.i_length_2->setValue(m_opt.length);
     ui.i_thickness_2->setValue(m_opt.thickness);
@@ -138,7 +145,7 @@ void MainWindow::loadConfig()
     ui.i_dotSize_2->setValue(m_opt.dotSize);
     ui.i_shadow->setChecked(m_opt.shadow);
     ui.i_shadowradius_2->setValue(m_opt.shadowBlurRadius);
-    ui.i_shadowalpha_2->setValue(alpha);
+    ui.i_shadowalpha_2->setValue(m_opt.shadowColor.alpha());
 
     if (m_opt.enabled)
     {
@@ -333,8 +340,13 @@ void MainWindow::setupConnections()
     // reset config button
     connect(ui.i_resetConf, &QPushButton::clicked, this, [this]() {
         resetConfig();
+
         updateUi();
         saveConfig();
+        showConfig();
+
+        render();
+        cr.update();
     });
 
     // color button

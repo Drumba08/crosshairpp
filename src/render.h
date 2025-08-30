@@ -20,7 +20,7 @@ class CrosshairRenderer : public QWidget
   public:
     CrosshairRenderer(Crosshair::Options &opt);
 
-    void Paint();
+    void update();
 
     QLabel *label;
   public slots:
