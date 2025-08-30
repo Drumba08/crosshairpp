@@ -16,19 +16,18 @@
 #include <QSettings>
 #include <QStyle>
 #include <QSystemTrayIcon>
+#include <QWidget>
+#include <QPointF>
 
 #include "crosshair.h"
 #include "mainwindow.h"
 #include "render.h"
 
-// main window constructor. important here is to init QMainWindow and the
+// main window constructor. important here is to init QWidget and the
 // CrosshairRenderer cr
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
 {
     ui.setupUi(this);
-
-    setupTray();
-    setupTrayConnections();
 
     loadConfig();
     m_opt.clamp();
@@ -37,11 +36,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
 
     if (m_opt.firstTime)
     {
-        QMessageBox::information(nullptr, "Welcome", "hi");
+        QString message = "Crosshair++ offers the following features:\n"
+                          "- Configure a custom crosshair\n"
+                          "- Change its color, size, thickness, and gap\n"
+                          "- Optionally add a central dot\n"
+                          "- Enable a shadow behind the crosshair and adjust its blur radius and transparency\n"
+                          "- Export your settings as a code\n\n"
+
+                          "When you close the settings window, Crosshair++ will continue running in the system tray, "
+                          "where you can reopen the settings or stop the program completely. If you encounter any "
+                          "issues, please report them at https://github.com/Drumba08/crosshairpp/issues.";
+
+        QMessageBox::information(nullptr, "Getting started", message);
 
         m_opt.firstTime = false;
         saveConfig();
     }
+
+    setupTray();
+    setupTrayConnections();
+
+    this->setWindowFlags(Qt::FramelessWindowHint);
+    this->setAttribute(Qt::WA_TranslucentBackground);
 
     this->show();
 
@@ -55,6 +71,35 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     hide();
     event->ignore();
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if (ui.header->geometry().contains(event->pos()) && event->button() == Qt::LeftButton)
+    {
+        mouseDown = true;
+        dragPosition = event->globalPosition() - frameGeometry().topLeft();
+    }
+    else
+    {
+        mouseDown = false;
+    }
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    if (mouseDown && (event->buttons() & Qt::LeftButton))
+    {
+        QPointF newPos = event->globalPosition() - dragPosition;
+        move(newPos.toPoint());
+    }
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    Q_UNUSED(event);
+    dragPosition = QPointF();
+    mouseDown = false;
 }
 
 void MainWindow::setupTray()
@@ -180,7 +225,12 @@ void MainWindow::saveConfig()
 // connect the tray actions to program logic
 void MainWindow::setupTrayConnections()
 {
-    connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
+    connect(restoreAction, &QAction::triggered, this, [this]() {
+        this->showNormal();
+        this->raise();
+        this->activateWindow();
+    });
+
     connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
 
     connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
@@ -197,8 +247,7 @@ void MainWindow::setupTrayConnections()
 // the crosshair in preview and on screen
 void MainWindow::render()
 {
-    // render the preview and main element
-    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+    // render the crosshair
     cr.label->setPixmap(Crosshair::render(m_opt));
 
     // show only if enabled
@@ -332,7 +381,11 @@ void MainWindow::setupConnections()
         m_opt.clamp();
         saveConfig();
         render();
+        showConfig();
     });
+
+    // settings exit button
+    connect(ui.i_exit, &QPushButton::clicked, this, [this]() { this->hide(); });
 
     // screen cycle button
     connect(ui.i_cycleScreen, &QPushButton::clicked, &cr, &CrosshairRenderer::cycleScreen);

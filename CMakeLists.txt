@@ -34,6 +34,7 @@ add_executable(crosshair++
     src/render.cpp
 
     resources/preset.ui
+    resources/resources.qrc
 )
 
 if(WIN32)

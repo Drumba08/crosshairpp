@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QWidget>
 #include <QSystemTrayIcon>
 
 #include "crosshair.h"
 #include "render.h"
 #include "ui_preset.h"
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
     Q_OBJECT
 
@@ -55,5 +55,14 @@ class MainWindow : public QMainWindow
     QAction *restoreAction;
     QAction *quitAction;
 
-    void closeEvent(QCloseEvent *event);
+    QPointF dragPosition;
+    bool mouseDown = false;
+
+    void closeEvent(QCloseEvent *event) override;
+
+    void mousePressEvent(QMouseEvent *event) override;
+
+    void mouseMoveEvent(QMouseEvent *event) override;
+
+    void mouseReleaseEvent(QMouseEvent *event) override;
 };
