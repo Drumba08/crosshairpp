@@ -128,6 +128,14 @@ QScrollBar::handle:vertical {
     border-radius: 4px;
 }
 
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical,
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+    background: none;
+	height: 0px;
+}
+
 QScrollBar::add-line:vertical,
 QScrollBar::sub-line:vertical {
     height: 0px;
