@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include <QWidget>
 #include <QSystemTrayIcon>
 
 #include "crosshair.h"
 #include "render.h"
 #include "ui_preset.h"
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
     Q_OBJECT
 

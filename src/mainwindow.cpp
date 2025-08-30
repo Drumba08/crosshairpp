@@ -16,14 +16,15 @@
 #include <QSettings>
 #include <QStyle>
 #include <QSystemTrayIcon>
+#include <QWidget>
 
 #include "crosshair.h"
 #include "mainwindow.h"
 #include "render.h"
 
-// main window constructor. important here is to init QMainWindow and the
+// main window constructor. important here is to init QWidget and the
 // CrosshairRenderer cr
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
+MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
 {
     ui.setupUi(this);
 
@@ -42,6 +43,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), cr(m_opt)
         m_opt.firstTime = false;
         saveConfig();
     }
+
+    this->setWindowFlags(Qt::FramelessWindowHint);
+    this->setAttribute(Qt::WA_TranslucentBackground);
 
     this->show();
 
@@ -197,8 +201,7 @@ void MainWindow::setupTrayConnections()
 // the crosshair in preview and on screen
 void MainWindow::render()
 {
-    // render the preview and main element
-    ui.crossPreview->setPixmap(Crosshair::render(m_opt));
+    // render the crosshair
     cr.label->setPixmap(Crosshair::render(m_opt));
 
     // show only if enabled
@@ -332,6 +335,7 @@ void MainWindow::setupConnections()
         m_opt.clamp();
         saveConfig();
         render();
+        showConfig();
     });
 
     // screen cycle button
