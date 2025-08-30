@@ -22,7 +22,7 @@
   <property name="maximumSize">
    <size>
     <width>500</width>
-    <height>400</height>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -31,6 +31,11 @@
   <property name="styleSheet">
    <string notr="true">#centralWidget {
 	border: 1px solid rgb(50, 50, 50);
+	color: white;
+}
+
+#centralWidget * {
+	color: white;
 }
 
 #header {
@@ -46,7 +51,7 @@
 }
 
 #i_exit {
-	background-color: red;
+	background-color: rgb(255, 79, 79);
 	border-radius: 9px;
 }
 
@@ -330,7 +335,7 @@ QCheckBox::indicator:checked:hover {
            <x>0</x>
            <y>0</y>
            <width>490</width>
-           <height>480</height>
+           <height>585</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -421,6 +426,22 @@ QCheckBox::indicator:checked:hover {
              </item>
             </layout>
            </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item>
            <widget class="QWidget" name="config_length" native="true">
@@ -609,6 +630,22 @@ QCheckBox::indicator:checked:hover {
            </widget>
           </item>
           <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
            <widget class="QCheckBox" name="i_dotEnabled">
             <property name="text">
              <string>Center Dot</string>
@@ -674,6 +711,22 @@ QCheckBox::indicator:checked:hover {
              </item>
             </layout>
            </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item>
            <widget class="QCheckBox" name="i_shadow">
