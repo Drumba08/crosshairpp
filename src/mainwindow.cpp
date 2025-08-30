@@ -29,9 +29,6 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
 {
     ui.setupUi(this);
 
-    setupTray();
-    setupTrayConnections();
-
     loadConfig();
     m_opt.clamp();
 
@@ -39,11 +36,25 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
 
     if (m_opt.firstTime)
     {
-        QMessageBox::information(nullptr, "Welcome", "hi");
+        QString message = "Crosshair++ offers the following features:\n"
+                          "- Configure a custom crosshair\n"
+                          "- Change its color, size, thickness, and gap\n"
+                          "- Optionally add a central dot\n"
+                          "- Enable a shadow behind the crosshair and adjust its blur radius and transparency\n"
+                          "- Export your settings as a code\n\n"
+
+                          "When you close the settings window, Crosshair++ will continue running in the system tray, "
+                          "where you can reopen the settings or stop the program completely. If you encounter any "
+                          "issues, please report them at https://github.com/Drumba08/crosshairpp/issues.";
+
+        QMessageBox::information(nullptr, "Getting started", message);
 
         m_opt.firstTime = false;
         saveConfig();
     }
+
+    setupTray();
+    setupTrayConnections();
 
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
