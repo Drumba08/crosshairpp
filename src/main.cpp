@@ -9,10 +9,14 @@
 #include <QMessageBox>
 #include <QSharedMemory>
 #include <QApplication>
+#include <QFontDatabase>
+#include <QFile>
 
 #include <signal.h>
 
 #include "mainwindow.h"
+#include "qfont.h"
+#include "qobject.h"
 
 QSharedMemory *gShared = nullptr;
 
@@ -40,6 +44,18 @@ int main(int argc, char *argv[])
     // Register signal handlers
     signal(SIGINT, handleSignal);
     signal(SIGTERM, handleSignal);
+
+    // load font
+    int font = QFontDatabase::addApplicationFont(":/fonts/SourceCodePro-Regular.ttf");
+    if (font == -1)
+    {
+        qWarning() << "Failed to load font :/fonts/SourceCodePro-Regular.ttf.";
+    } else
+    {
+        QString fontFamily = QFontDatabase::applicationFontFamilies(font).at(0);
+        QFont fontRegular = QFont(fontFamily, 10);
+        app.setFont(fontRegular);
+    }
 
     MainWindow window;
 

@@ -17,6 +17,7 @@
 #include <QStyle>
 #include <QSystemTrayIcon>
 #include <QWidget>
+#include <QPointF>
 
 #include "crosshair.h"
 #include "mainwindow.h"
@@ -59,6 +60,35 @@ void MainWindow::closeEvent(QCloseEvent *event)
 {
     hide();
     event->ignore();
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if (ui.header->geometry().contains(event->pos()) && event->button() == Qt::LeftButton)
+    {
+        mouseDown = true;
+        dragPosition = event->globalPosition() - frameGeometry().topLeft();
+    }
+    else
+    {
+        mouseDown = false;
+    }
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    if (mouseDown && (event->buttons() & Qt::LeftButton))
+    {
+        QPointF newPos = event->globalPosition() - dragPosition;
+        move(newPos.toPoint());
+    }
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    Q_UNUSED(event);
+    dragPosition = QPointF();
+    mouseDown = false;
 }
 
 void MainWindow::setupTray()
@@ -184,7 +214,12 @@ void MainWindow::saveConfig()
 // connect the tray actions to program logic
 void MainWindow::setupTrayConnections()
 {
-    connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
+    connect(restoreAction, &QAction::triggered, this, [this]() {
+        this->showNormal();
+        this->raise();
+        this->activateWindow();
+    });
+
     connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
 
     connect(trayIcon, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
@@ -337,6 +372,9 @@ void MainWindow::setupConnections()
         render();
         showConfig();
     });
+
+    // settings exit button
+    connect(ui.i_exit, &QPushButton::clicked, this, [this]() { this->hide(); });
 
     // screen cycle button
     connect(ui.i_cycleScreen, &QPushButton::clicked, &cr, &CrosshairRenderer::cycleScreen);
