@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="2b6d851c-43f4-4168-9832-cbaa896633e2" Name="Crosshair++" Language="1033" Version="$(var.Version)"
+    Manufacturer="Drumba08" UpgradeCode="023dd502-da82-40cf-8c33-c4e40f39076f">
+
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+    <Media Id="1" Cabinet="product.cab" EmbedCab="yes" />
+
+    <!-- Directories -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="Crosshair++" />
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Crosshair++" />
+      </Directory>
+
+      <Directory Id="DesktopFolder" />
+
+    </Directory>
+
+    <!-- Shortcuts component -->
+    <Component Id="ShortcutsComponent" Guid="*" Directory="INSTALLFOLDER">
+
+      <Shortcut Id="StartMenuShortcut"
+        Name="Crosshair++"
+        Target="[INSTALLFOLDER]crosshairpp.exe"
+        WorkingDirectory="INSTALLFOLDER"
+        Directory="ApplicationProgramsFolder"
+        Advertise="no" />
+
+        <Shortcut Id="DesktopShortcut"
+        Name="Crosshair++"
+        Target="[INSTALLFOLDER]crosshairpp.exe"
+        WorkingDirectory="INSTALLFOLDER"
+        Directory="DesktopFolder"
+        Advertise="no" />
+
+      <RemoveFolder Id="RemoveStartMenuFolder"
+        Directory="ApplicationProgramsFolder"
+        On="uninstall" />
+
+      <RegistryValue Root="HKCU"
+        Key="Software\Crosshair++"
+        Name="installed"
+        Type="integer"
+        Value="1"
+        KeyPath="yes" />
+
+    </Component>
+
+    <!-- features -->
+    <Feature Id="DefaultFeature" Level="1">
+      <ComponentGroupRef Id="CrosshairAll" />
+      <ComponentRef Id="ShortcutsComponent" />
+    </Feature>
+
+    <UI>
+      <UIRef Id="WixUI_InstallDir" />
+    </UI>
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+  </Product>
+</Wix>

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Crosshair++
-Exec=AppRun
+Name=crosshairpp
+Exec=crosshairpp
 Icon=icon
 Categories=Utility;

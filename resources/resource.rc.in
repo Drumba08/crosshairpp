@@ -17,8 +17,8 @@ BEGIN
   BEGIN
     BLOCK "040904b0"
     BEGIN
-      VALUE "FileVersion", "@VERSION_STR@"
-      VALUE "ProductVersion", "@VERSION_STR@"
+      VALUE "FileVersion", "@VERSION@"
+      VALUE "ProductVersion", "@VERSION@"
       VALUE "CompanyName", "YourCompany"
       VALUE "FileDescription", "Crosshair++"
       VALUE "ProductName", "Crosshair++"

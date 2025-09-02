@@ -1,22 +1,22 @@
 
-name: release multibuild
+name: pr multibuild
 
 on:
-  push:
-    tags:
-      - '*.*.*'
+  pull_request:
+    branches:
+      - '**'
 
 permissions:
   contents: write
 
 env:
   REF: ${{ github.ref }}
-  VERSION: ${{ github.ref_name }}
+  VERSION: "0.0.0"
   DEPLOY_DIR: deploy
   BUILD_DIR: build
   EXE: crosshairpp
   EXE_DOS: crosshairpp.exe
-  CONFIG: Release
+  CONFIG: Debug
   DESKTOP_FILE: resources/appimage/crosshairpp.desktop
   ICON_FILE: resources/appimage/icon.png
 
@@ -56,12 +56,6 @@ jobs:
       - name: Build AppImage
         run:  VERSION="${{ env.VERSION }}" ./linuxdeploy-x86_64.AppImage --appdir Crosshairpp.AppDir --executable ${{ env.BUILD_DIR }}/${{ env.EXE }} --plugin qt --desktop-file ${{ env.DESKTOP_FILE }} --icon-file ${{ env.ICON_FILE }} --output appimage
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-appimage-release
-          path: crosshairpp-${{ env.VERSION }}-x86_64.AppImage
-
   build-windows:
     runs-on: windows-2022
     steps:
@@ -98,58 +92,3 @@ jobs:
           candle.exe resources\msi\installer.wxs resources\heat.wxs -dVersion="${{ env.VERSION }}" -dSourceDir="${{ env.DEPLOY_DIR }}"
           light.exe installer.wixobj heat.wixobj -ext WixUIExtension -o "crosshairpp-${{ env.VERSION }}-x86_64-installer.msi"
         shell: pwsh
-
-      - name: Upload artifact (msi)
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer-release
-          path: crosshairpp-${{ env.VERSION }}-x86_64-installer.msi
-
-      - name: Upload artifact (portable)
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-portable-release
-          path: ${{ env.DEPLOY_DIR }}
-
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs:
-      - build-linux
-      - build-windows
-    if: github.ref_type == 'tag'
-    steps:
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: linux-appimage-release
-          path: artifacts/
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: windows-installer-release
-          path: artifacts/
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: windows-portable-release
-          path: crosshairpp/
-  
-      - name: Prepare release assets
-        run: |
-          find .
-          zip -r crosshairpp-${{ env.VERSION }}-x86_64-portable.zip crosshairpp
-        shell: bash
-
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            artifacts/crosshairpp-${{ env.VERSION }}-x86_64.AppImage
-            artifacts/crosshairpp-${{ env.VERSION }}-x86_64-installer.msi
-            crosshairpp-${{ env.VERSION }}-x86_64-portable.zip
-          tag_name: ${{ env.VERSION }}
-          name: "Release ${{ env.VERSION }}"
-          body: "> [!NOTE]\n> The pre-built Crosshair++ binaries are **not signed**, which may cause security warnings on Windows. All release binaries were compiled in GitHub Actions run [#${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n#### Release Notes"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
