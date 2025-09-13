@@ -22,7 +22,7 @@ namespace Crosshair
 
 // creates the QPainterPath for the main crosshair lines,
 // so it can be used in the render function
-QPainterPath buildPath(const Config::Options &opt, const QSize &canvasSize)
+QPainterPath buildPath(const Config &opt, const QSize &canvasSize)
 {
     QPainterPath path;
 
@@ -59,7 +59,7 @@ QPainterPath buildPath(const Config::Options &opt, const QSize &canvasSize)
 
 // renders the crosshair lines with thicknes color
 // shadow and the centerdot to a QPixmap
-QPixmap render(const Config::Options &opt)
+QPixmap render(const Config &opt)
 {
     // calculate canvas size
     const int size = (opt.length + opt.gap) * 2 + 100;
@@ -117,7 +117,7 @@ QPixmap render(const Config::Options &opt)
 
 // this function takes the rendered crosshair/dot and applies
 // a QGraphicsDropShadowEffect using a QGraphicsScene
-QPixmap renderShadow(const QImage &base, const Config::Options &opt)
+QPixmap renderShadow(const QImage &base, const Config &opt)
 {
     QGraphicsScene scene;
 

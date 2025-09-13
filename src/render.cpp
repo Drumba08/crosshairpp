@@ -18,7 +18,7 @@
 // this constructor creates the widget where the crosshair is rendered on screen.
 // its initially centered on the first system screen. it pulls the m_opt ref
 // from the MainWindow Constructor to access the settings currentScreenIndex
-CrosshairRenderer::CrosshairRenderer(Config::Options &opt) : QWidget(), m_opt(opt)
+CrosshairRenderer::CrosshairRenderer(Config &opt) : QWidget(), m_opt(opt)
 {
     // make sure the window is transparent and click thru
     setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::Tool | Qt::WindowTransparentForInput |

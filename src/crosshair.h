@@ -19,10 +19,10 @@
 namespace Crosshair
 {
 
-QPainterPath buildPath(const Config::Options &opt, const QSize &canvas);
+QPainterPath buildPath(const Config &opt, const QSize &canvas);
 
-QPixmap render(const Config::Options &opt);
+QPixmap render(const Config &opt);
 
-QPixmap renderShadow(const QImage &base, const Config::Options &opt);
+QPixmap renderShadow(const QImage &base, const Config &opt);
 
 } // namespace Crosshair

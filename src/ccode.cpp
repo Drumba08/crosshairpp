@@ -17,7 +17,7 @@ namespace ccode
 
 // this function generates a crosshair code encoding user changable settings, in the format:
 // enabled;r;g;b;length;gap;thickness;dotenabled;dotsize;shadowenabled;shadowblur;shadowalpha
-QString generateCode(Config::Options &m_opt)
+QString generateCode(Config &m_opt)
 {
     QString code;
 
@@ -39,9 +39,9 @@ QString generateCode(Config::Options &m_opt)
 
 // takes a crosshair code, if it has the right amount of
 // values its parsed and passed into the settings
-void applyCode(QString &code, Config::Options &m_opt)
+void applyCode(QString &code, Config &m_opt)
 {
-    Config::Options defaultOptions;
+    Config defaultOptions;
     QStringList parts = code.split(';');
 
     if (parts.size() != 12)

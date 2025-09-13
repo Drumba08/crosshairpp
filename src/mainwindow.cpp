@@ -27,7 +27,7 @@
 #include <QWidget>
 
 // main window constructor
-MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
+MainWindow::MainWindow(Config &cfg) : QWidget(), m_config(cfg), crosshairRenderer(m_config)
 {
     // this loads the ui compiled by uic
     ui.setupUi(this);
@@ -43,25 +43,18 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent), cr(m_opt)
 
 void MainWindow::setup()
 {
-    // load the config
-    Config::loadConfig(m_opt);
-
-    // clamps option values to make sure
-    // they stay within allowed margin
-    m_opt.clamp();
-
     // sets all the ui components to the settings
-    Config::showConfig(m_opt, ui);
-    cr.show();
+    m_config.showConfig(ui);
+    crosshairRenderer.show();
 
     // if the program is started for the first time,
     // show a nice welcome dialogue
-    if (m_opt.firstTime)
+    if (m_config.firstTime)
     {
         util::welcomeDialogue();
 
-        m_opt.firstTime = false;
-        Config::saveConfig(m_opt);
+        m_config.firstTime = false;
+        m_config.saveConfig();
     }
 
     // add tray and the connections for quitting
@@ -162,16 +155,16 @@ void MainWindow::setupTrayConnections()
 void MainWindow::render()
 {
     // render the crosshair
-    cr.label->setPixmap(Crosshair::render(m_opt));
+    crosshairRenderer.label->setPixmap(Crosshair::render(m_config));
 
     // show only if enabled
-    if (m_opt.enabled)
+    if (m_config.enabled)
     {
-        cr.show();
+        crosshairRenderer.show();
     }
     else
     {
-        cr.hide();
+        crosshairRenderer.hide();
     }
 }
 
@@ -179,7 +172,7 @@ void MainWindow::render()
 // and also renders and displays the crosshair again
 void MainWindow::updateUi()
 {
-    QString crosshairCode = ccode::generateCode(m_opt);
+    QString crosshairCode = ccode::generateCode(m_config);
     ui.i_crosshairCode->setText(crosshairCode);
     render();
 }
@@ -190,12 +183,12 @@ void MainWindow::setupConnections()
 {
     // crosshair code LineEdit change handler
     connect(ui.i_crosshairCode, &QLineEdit::textEdited, this, [this](QString value) {
-        ccode::applyCode(value, m_opt);
-        m_opt.clamp();
+        ccode::applyCode(value, m_config);
+        m_config.clamp();
 
-        Config::saveConfig(m_opt);
-        Config::showConfig(m_opt, ui);
-        cr.show();
+        m_config.saveConfig();
+        m_config.showConfig(ui);
+        crosshairRenderer.show();
         render();
     });
 
@@ -203,95 +196,95 @@ void MainWindow::setupConnections()
     connect(ui.i_exit, &QPushButton::clicked, this, [this]() { this->hide(); });
 
     // screen cycle button
-    connect(ui.i_cycleScreen, &QPushButton::clicked, &cr, &CrosshairRenderer::cycleScreen);
+    connect(ui.i_cycleScreen, &QPushButton::clicked, &crosshairRenderer, &CrosshairRenderer::cycleScreen);
 
     // reset config button
     connect(ui.i_resetConf, &QPushButton::clicked, this, [this]() {
-        Config::resetConfig(m_opt);
+        m_config.resetConfig();
 
         updateUi();
-        Config::saveConfig(m_opt);
-        Config::showConfig(m_opt, ui);
-        cr.show();
+        m_config.saveConfig();
+        m_config.showConfig(ui);
+        crosshairRenderer.show();
 
         render();
-        cr.update();
+        crosshairRenderer.update();
     });
 
     // color button
     connect(ui.i_changeColor, &QPushButton::clicked, this, [this]() {
-        m_opt.color = QColorDialog::getColor(m_opt.color, this, "Select Color");
+        m_config.color = QColorDialog::getColor(m_config.color, this, "Select Color");
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // enable checkmark
     connect(ui.i_enableCrosshair, &QCheckBox::toggled, this, [this](bool value) {
-        m_opt.enabled = value;
+        m_config.enabled = value;
         render();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair length
     connect(ui.i_length, &QSlider::valueChanged, this, [this](int value) {
-        m_opt.length = value;
+        m_config.length = value;
         ui.i_length_2->setValue(value);
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair thickness
     connect(ui.i_thickness, &QSlider::valueChanged, this, [this](int value) {
-        m_opt.thickness = value;
+        m_config.thickness = value;
         ui.i_thickness_2->setValue(value);
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair gap
     connect(ui.i_gap, &QSlider::valueChanged, this, [this](int value) {
-        m_opt.gap = value;
+        m_config.gap = value;
         ui.i_gap_2->setValue(value);
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair dot enabled
     connect(ui.i_dotEnabled, &QCheckBox::toggled, this, [this](bool value) {
-        m_opt.dot = value;
+        m_config.dot = value;
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair dot size
     connect(ui.i_dotSize, &QSlider::valueChanged, this, [this](int value) {
-        m_opt.dotSize = value;
+        m_config.dotSize = value;
         ui.i_dotSize_2->setValue(value);
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair shadow enabled
     connect(ui.i_shadow, &QCheckBox::toggled, this, [this](bool value) {
-        m_opt.shadow = value;
+        m_config.shadow = value;
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair shadow radius
     connect(ui.i_shadowradius, &QSlider::valueChanged, this, [this](int value) {
-        m_opt.shadowBlurRadius = value;
+        m_config.shadowBlurRadius = value;
         ui.i_shadowradius_2->setValue(value);
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // crosshair shadow alpha
     connect(ui.i_shadowalpha, &QSlider::valueChanged, this, [this](int value) {
-        m_opt.shadowColor = QColor(0, 0, 0, value);
+        m_config.shadowColor = QColor(0, 0, 0, value);
         ui.i_shadowalpha_2->setValue(value);
         updateUi();
-        Config::saveConfig(m_opt);
+        m_config.saveConfig();
     });
 
     // here we connect the QSpinBox widgets to the slider so if the spinbox changes it also applies to the slider

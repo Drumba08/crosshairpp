@@ -14,8 +14,8 @@
 namespace ccode
 {
 
-QString generateCode(Config::Options &m_opt);
+QString generateCode(Config &m_opt);
 
-void applyCode(QString &code, Config::Options &m_opt);
+void applyCode(QString &code, Config &m_opt);
 
 } // namespace ccode

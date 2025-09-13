@@ -6,6 +6,7 @@
  * See the LICENSE file for full license text.
  */
 
+#include "config.h"
 #include "mainwindow.h"
 #include "util.h"
 #include <QApplication>
@@ -62,11 +63,18 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // load font
     util::loadFonts(app);
 
+    // load config
+    Config conf;
+    conf.loadConfig();
+
+    // clamps option values to make sure
+    // they stay within allowed margin
+    conf.clamp();
+
     // create mainwindow
-    MainWindow window;
+    MainWindow window(conf);
     window.setup();
 
     window.show();

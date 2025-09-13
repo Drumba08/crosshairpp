@@ -20,7 +20,7 @@ class MainWindow : public QWidget
     Q_OBJECT
 
   public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(Config &cfg);
 
     void setup();
 
@@ -35,10 +35,10 @@ class MainWindow : public QWidget
     void setupConnections();
 
   private:
-    Ui::MainWindow ui;
-    Config::Options m_opt;
+    Config &m_config;
 
-    CrosshairRenderer cr;
+    Ui::MainWindow ui;
+    CrosshairRenderer crosshairRenderer;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayMenu;

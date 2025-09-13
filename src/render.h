@@ -18,7 +18,7 @@ class CrosshairRenderer : public QWidget
     Q_OBJECT
 
   public:
-    CrosshairRenderer(Config::Options &opt);
+    CrosshairRenderer(Config &opt);
 
     void update();
 
@@ -27,5 +27,5 @@ class CrosshairRenderer : public QWidget
     void cycleScreen();
 
   private:
-    Config::Options &m_opt;
+    Config &m_opt;
 };
