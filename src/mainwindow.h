@@ -8,12 +8,12 @@
 
 #pragma once
 
-#include <QWidget>
-#include <QSystemTrayIcon>
-
+#include "config.h"
 #include "crosshair.h"
 #include "render.h"
 #include "ui_preset.h"
+#include <QSystemTrayIcon>
+#include <QWidget>
 
 class MainWindow : public QWidget
 {
@@ -22,23 +22,13 @@ class MainWindow : public QWidget
   public:
     MainWindow(QWidget *parent = nullptr);
 
+    void setup();
+
     void setupTray();
 
     void render();
 
-    QString updateCode();
-
-    void applyCode(QString &code);
-
     void updateUi();
-
-    void resetConfig();
-    
-    void showConfig();
-
-    void loadConfig();
-
-    void saveConfig();
 
     void setupTrayConnections();
 
@@ -46,7 +36,7 @@ class MainWindow : public QWidget
 
   private:
     Ui::MainWindow ui;
-    Crosshair::Options m_opt;
+    Config::Options m_opt;
 
     CrosshairRenderer cr;
 

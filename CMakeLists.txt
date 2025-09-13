@@ -54,6 +54,9 @@ add_executable(${TARGET}
     src/mainwindow.cpp
     src/crosshair.cpp
     src/render.cpp
+    src/util.cpp
+    src/ccode.cpp
+    src/config.cpp
 
     resources/ui/preset.ui
     resources/resources.qrc

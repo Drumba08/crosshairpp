@@ -1,5 +1,8 @@
 build/
 temp/
+.vscode/
+.cache/
+.todo
 .clangd
 .clang-format
 compile_flags.txt

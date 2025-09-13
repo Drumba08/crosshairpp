@@ -6,29 +6,31 @@
  * See the LICENSE file for full license text.
  */
 
-#include <QImage>
-#include <QPainter>
-#include <QPen>
+#include "crosshair.h"
 
+#include "config.h"
 #include <QGraphicsDropShadowEffect>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
-
-#include "crosshair.h"
+#include <QImage>
+#include <QPainter>
+#include <QPen>
+#include <QPointF>
 
 namespace Crosshair
 {
 
-// creates the QPainterPath for the main crosshair lines, so
-// they can be used in the render function
-QPainterPath buildPath(const Options &opt, const QSize &canvas)
+// creates the QPainterPath for the main crosshair lines,
+// so it can be used in the render function
+QPainterPath buildPath(const Config::Options &opt, const QSize &canvasSize)
 {
     QPainterPath path;
 
-    qreal cx = canvas.width() / 2.0;
-    qreal cy = canvas.height() / 2.0;
+    // canvas center
+    qreal cx = canvasSize.width() / 2.0;
+    qreal cy = canvasSize.height() / 2.0;
 
-    // If thickness is odd, shift by 0.5 to align with screen pixels
+    // If thickness is odd, shift center by 0.5 to align with screen pixels
     // that prevents sub pixel anti aliasing mess or uneven lengths
     qreal shift = (opt.thickness % 2) ? 0.5 : 0.0;
     cx += shift;
@@ -39,7 +41,8 @@ QPainterPath buildPath(const Options &opt, const QSize &canvas)
     const qreal g = opt.gap;
     const qreal L = opt.length;
 
-    // helper to add a line to the QPainterPath path from QPointF a to QPointF b
+    // helper lambda to add a line segment to the QPainterPath
+    // path from QPointF a to QPointF b
     auto addSegment = [&](const QPointF &a, const QPointF &b) {
         path.moveTo(a);
         path.lineTo(b);
@@ -56,9 +59,10 @@ QPainterPath buildPath(const Options &opt, const QSize &canvas)
 
 // renders the crosshair lines with thicknes color
 // shadow and the centerdot to a QPixmap
-QPixmap render(const Options &opt)
+QPixmap render(const Config::Options &opt)
 {
-    const int size = (opt.length + opt.gap) * 2 + opt.padding * 2;
+    // calculate canvas size
+    const int size = (opt.length + opt.gap) * 2 + 100;
     const QSize canvasSize(size, size);
 
     QImage base(canvasSize, QImage::Format_ARGB32_Premultiplied);
@@ -71,16 +75,18 @@ QPixmap render(const Options &opt)
 
         // enable anti aliasing to smooth the crosshair and center dot
         // and remove flickering on thickness change due to the subpixel
-        // prevention in buildPath()
+        // prevention in buildPath() func
         painter.setRenderHint(QPainter::Antialiasing, true);
 
         QPen pen(opt.color);
         pen.setWidth(opt.thickness);
         pen.setCapStyle(Qt::FlatCap);
         pen.setJoinStyle(Qt::MiterJoin);
+
         painter.setPen(pen);
         painter.setBrush(Qt::NoBrush);
 
+        // generate the painter path using previous func
         QPainterPath path = buildPath(opt, canvasSize);
         painter.drawPath(path);
 
@@ -97,26 +103,36 @@ QPixmap render(const Options &opt)
         }
     }
 
-    // If shadow is disabled,
-    // we can return the finished QPixmap
+    // If shadow is disabled, we can return
+    // the finished QPixmap here
     if (!opt.shadow)
+    {
         return QPixmap::fromImage(base);
+    }
 
-    // Shadow enabled, continue to draw shadow using QGraphicsScene
+    // else, we have to generate the shadow aswell
+    QPixmap out = renderShadow(base, opt);
+    return out;
+}
+
+// this function takes the rendered crosshair/dot and applies
+// a QGraphicsDropShadowEffect using a QGraphicsScene
+QPixmap renderShadow(const QImage &base, const Config::Options &opt)
+{
     QGraphicsScene scene;
+
+    // add the previous generated QImage to the scene
     QGraphicsPixmapItem *item = scene.addPixmap(QPixmap::fromImage(base));
 
+    // create, configure and apply the QGraphicsDropShadowEffect
     auto *effect = new QGraphicsDropShadowEffect;
     effect->setBlurRadius(opt.shadowBlurRadius);
-    effect->setOffset(opt.shadowOffset);
+    effect->setOffset(QPointF(0.0, 0.0));
     effect->setColor(opt.shadowColor);
     item->setGraphicsEffect(effect);
 
-    // add padding to avoid shadow cutoff
-    const qreal shadowPadding =
-        opt.shadowBlurRadius + std::max(std::abs(opt.shadowOffset.x()), std::abs(opt.shadowOffset.y())) + 2;
-
-    // pad the original QImage bounding rect
+    // add padding to avoid cutting off the shadow
+    const qreal shadowPadding = opt.shadowBlurRadius + 2;
     QRectF bounds = item->boundingRect().adjusted(-shadowPadding, -shadowPadding, shadowPadding, shadowPadding);
     scene.setSceneRect(bounds);
 
@@ -126,9 +142,7 @@ QPixmap render(const Options &opt)
 
     QPainter p(&out);
 
-    // enable anti aliasing to smooth the crosshair and center dot
-    // and remove flickering on thickness change due to the subpixel
-    // prevention in buildPath()
+    // anti aliasing for the shadow
     p.setRenderHint(QPainter::Antialiasing, true);
 
     scene.render(&p, QRectF(QPointF(0, 0), bounds.size()), bounds);

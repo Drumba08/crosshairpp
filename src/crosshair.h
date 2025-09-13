@@ -8,7 +8,9 @@
 
 #pragma once
 
+#include "config.h"
 #include <QColor>
+#include <QImage>
 #include <QPainterPath>
 #include <QPixmap>
 #include <QPoint>
@@ -17,50 +19,10 @@
 namespace Crosshair
 {
 
-struct Options
-{
-    bool enabled = true;
+QPainterPath buildPath(const Config::Options &opt, const QSize &canvas);
 
-    bool firstTime = true;
+QPixmap render(const Config::Options &opt);
 
-    QColor color = QColor(255, 255, 255);
-
-    int length = 8;
-    int gap = 32;
-    int thickness = 2;
-
-    bool dot = true;
-    int dotSize = 4;
-
-    bool shadow = true;
-    int shadowBlurRadius = 6;
-    QColor shadowColor = QColor(0, 0, 0, 255);
-    QPoint shadowOffset = QPoint(0, 0);
-
-    int padding = 12;
-
-    int currentScreenIndex = 0;
-
-    qreal devicePixelRatio = 1.0;
-    qreal supersample = 1.0;
-
-    void clamp()
-    {
-        length = std::clamp(length, 1, 50);
-        gap = std::clamp(gap, 0, 50);
-        thickness = std::clamp(thickness, 1, 50);
-        dotSize = std::clamp(dotSize, 0, 100);
-        shadowBlurRadius = std::clamp(shadowBlurRadius, 0, 24);
-        shadowColor.setAlpha(std::clamp(shadowColor.alpha(), 0, 255));
-    }
-};
-
-// creates the QPainterPath for the main crosshair lines, so
-// they can be used in the render function
-QPainterPath buildPath(const Options &opt, const QSize &canvas);
-
-// renders the crosshair lines with thicknes color
-// shadow and the centerdot to a QPixmap
-QPixmap render(const Options &opt);
+QPixmap renderShadow(const QImage &base, const Config::Options &opt);
 
 } // namespace Crosshair
