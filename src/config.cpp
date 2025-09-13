@@ -82,7 +82,7 @@ void Config::showConfig(Ui::MainWindow &ui)
 // should be called on every settings change
 void Config::saveConfig()
 {
-    QSettings settings("Crosshair++", "crosshair");
+    QSettings settings("Crosshair++", "config");
 
     clamp();
 
