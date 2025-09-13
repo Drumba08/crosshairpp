@@ -35,17 +35,12 @@ MainWindow::MainWindow(Config &cfg) : QWidget(), m_config(cfg), crosshairRendere
     // required window flags
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
-
-    // generate code and
-    // render crosshair
-    updateUi();
 }
 
 void MainWindow::setup()
 {
     // sets all the ui components to the settings
     m_config.showConfig(ui);
-    crosshairRenderer.show();
 
     // if the program is started for the first time,
     // show a nice welcome dialogue
@@ -65,6 +60,10 @@ void MainWindow::setup()
     // buttons, tray etc...
     setupTrayConnections();
     setupConnections();
+
+    // generate code and
+    // render crosshair
+    updateUi();
 }
 
 // hooks main window closeEvent to prevent the app
