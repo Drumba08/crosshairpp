@@ -25,7 +25,6 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v4
 
       - name: Install Qt6
@@ -54,13 +53,16 @@ jobs:
         run: strip ${{ env.BUILD_DIR }}/${{ env.EXE }}
 
       - name: Build AppImage
-        run:  VERSION="${{ env.VERSION }}" ./linuxdeploy-x86_64.AppImage --appdir Crosshairpp.AppDir --executable ${{ env.BUILD_DIR }}/${{ env.EXE }} --plugin qt --desktop-file ${{ env.DESKTOP_FILE }} --icon-file ${{ env.ICON_FILE }} --output appimage
+        run:  |
+          VERSION="${{ env.VERSION }}" ./linuxdeploy-x86_64.AppImage --appdir Crosshairpp.AppDir --executable ${{ env.BUILD_DIR }}/${{ env.EXE }} --plugin qt --desktop-file ${{ env.DESKTOP_FILE }} --icon-file ${{ env.ICON_FILE }} --output appimage
+          mv crosshairpp-${{ env.VERSION }}-x86_64.AppImage crosshairpp-linux-x86_64-portable.AppImage
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: linux-appimage-release
-          path: crosshairpp-${{ env.VERSION }}-x86_64.AppImage
+          path: crosshairpp-linux-x86_64-portable.AppImage
+          retention-days: 90
 
   build-windows:
     runs-on: windows-2022
@@ -96,20 +98,22 @@ jobs:
         run: |
           heat dir "${{ env.DEPLOY_DIR }}\" -cg CrosshairAll -dr INSTALLFOLDER -srd -gg -sreg -var var.SourceDir -template fragment -out resources\heat.wxs          
           candle.exe resources\msi\installer.wxs resources\heat.wxs -dVersion="${{ env.VERSION }}" -dSourceDir="${{ env.DEPLOY_DIR }}"
-          light.exe installer.wixobj heat.wixobj -ext WixUIExtension -o "crosshairpp-${{ env.VERSION }}-x86_64-installer.msi"
+          light.exe installer.wixobj heat.wixobj -ext WixUIExtension -o "crosshairpp-windows-x86_64-installer.msi"
         shell: pwsh
 
       - name: Upload artifact (msi)
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer-release
-          path: crosshairpp-${{ env.VERSION }}-x86_64-installer.msi
+          path: crosshairpp-windows-x86_64-installer.msi
+          retention-days: 90
 
       - name: Upload artifact (portable)
         uses: actions/upload-artifact@v4
         with:
           name: windows-portable-release
           path: ${{ env.DEPLOY_DIR }}
+          retention-days: 90
 
   release:
     name: Release
@@ -138,16 +142,16 @@ jobs:
       - name: Prepare release assets
         run: |
           find .
-          zip -r crosshairpp-${{ env.VERSION }}-x86_64-portable.zip crosshairpp
+          zip -r crosshairpp-windows-x86_64-portable.zip crosshairpp
         shell: bash
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/crosshairpp-${{ env.VERSION }}-x86_64.AppImage
-            artifacts/crosshairpp-${{ env.VERSION }}-x86_64-installer.msi
-            crosshairpp-${{ env.VERSION }}-x86_64-portable.zip
+            artifacts/crosshairpp-windows-x86_64-installer.msi
+            crosshairpp-windows-x86_64-portable.zip
+            artifacts/crosshairpp-linux-x86_64-portable.AppImage
           tag_name: ${{ env.VERSION }}
           name: "Release ${{ env.VERSION }}"
           body: "> [!NOTE]\n> The pre-built Crosshair++ binaries are **not signed**, which may cause security warnings on Windows. All release binaries were compiled in GitHub Actions run [#${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n#### Release Notes"
