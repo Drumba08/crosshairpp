@@ -61,6 +61,7 @@ jobs:
         with:
           name: linux-appimage-release
           path: crosshairpp-${{ env.VERSION }}-x86_64.AppImage
+          retention-days: 2
 
   build-windows:
     runs-on: windows-2022
@@ -104,9 +105,11 @@ jobs:
         with:
           name: windows-installer-release
           path: crosshairpp-${{ env.VERSION }}-x86_64-installer.msi
+          retention-days: 2
 
       - name: Upload artifact (portable)
         uses: actions/upload-artifact@v4
         with:
           name: windows-portable-release
           path: ${{ env.DEPLOY_DIR }}
+          retention-days: 2
